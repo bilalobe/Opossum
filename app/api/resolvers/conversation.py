@@ -1,55 +1,81 @@
-"""Chat and conversation management resolvers."""
+"""Conversation resolvers with enhanced functionality and error handling."""
 import logging
-import json
+from typing import Dict, Any, Optional
+
 from app.conversation import conversation_factory
-from app.models import get_model_backend
-from app.utils.infrastructure.cache_factory import cache
+from app.api.directives import apply_cost, rate_limit
+from app.api.types import Error, Timestamp
 
 logger = logging.getLogger(__name__)
 
+@apply_cost(value=10)
+@rate_limit(limit=30, duration=60)  # 30 requests per minute
 async def resolve_chat(root, info, input):
-    """Handle chat messages with caching and response generation."""
-    cache_key = f"chat_{input.session_id}_{input.message}_{input.has_image}"
-    cached_response = cache.get(cache_key)
-    if cached_response:
-        return json.loads(cached_response)
-
+    """Handle chat conversations using the selected model."""
     try:
-        conversation_state, sentiment_tracker = conversation_factory.create_conversation(input.session_id)
-        response_generator = conversation_factory.get_response_generator()
-        backend = await get_model_backend(input.message, conversation_state.current_stage, input.has_image)
+        # Extract input parameters
+        message = input.get('message', '')
+        session_id = input.get('session_id', '')
+        has_image = input.get('has_image', False)
+        image_data = input.get('image_data', '') if has_image else None
         
-        response_data = await response_generator.generate_response(
-            user_message=input.message,
-            conversation_state=conversation_state,
-            sentiment_tracker=sentiment_tracker,
-            model_backend=backend
+        # Get conversation manager for this session
+        conversation = conversation_factory.get_conversation(session_id)
+        
+        # Process the message
+        result = await conversation.process_message(
+            message=message,
+            image_data=image_data if has_image else None
         )
-
-        cache.set(cache_key, json.dumps(response_data), expire=3600)
-        return response_data
-    except Exception as e:
-        logger.error(f"Error generating chat response: {str(e)}")
+        
+        # Return structured response
         return {
-            "response": "I apologize, but I'm having trouble processing your request right now.",
-            "next_stage": conversation_state.current_stage if conversation_state else None,
+            "response": result.get("response", ""),
+            "next_stage": result.get("next_stage", ""),
+            "has_svg": "svg_content" in result and bool(result["svg_content"]),
+            "svg_content": result.get("svg_content", ""),
+            "base64_image": result.get("base64_image", "")
+        }
+    except Exception as e:
+        logger.error(f"Error processing chat: {e}", exc_info=True)
+        return {
+            "response": "I'm sorry, I encountered an error processing your request.",
+            "next_stage": "error",
             "has_svg": False,
             "error": str(e)
         }
 
-def resolve_submit_feedback(root, info, message, rating):
-    """Handle user feedback submission."""
+@apply_cost(value=2)
+async def resolve_submit_feedback(root, info, message, rating):
+    """Record user feedback about a conversation."""
     try:
-        logger.info(f"Feedback received for message '{message}': {rating}")
+        # This would typically connect to a feedback storage system
+        logger.info(f"Feedback received - Rating: {rating}, Message: {message}")
+        
+        # For now, just log the feedback
+        feedback_data = {
+            "message": message,
+            "rating": rating,
+            "timestamp": Timestamp.from_datetime.now(),
+            "user_agent": getattr(info.context, 'user_agent', 'unknown'),
+            "ip_address": getattr(info.context, 'ip_address', 'unknown')
+        }
+        
+        # In a real implementation, store this in a database
+        logger.info(f"Feedback data: {feedback_data}")
+        
         return True
     except Exception as e:
         logger.error(f"Error submitting feedback: {e}")
         return False
 
-def resolve_end_conversation(root, info, session_id):
-    """End a conversation session."""
+@apply_cost(value=1)
+async def resolve_end_conversation(root, info, session_id):
+    """End a conversation session and clean up resources."""
     try:
-        conversation_factory.conversation_manager.end_conversation(session_id)
+        # Remove conversation from factory
+        conversation_factory.end_conversation(session_id)
+        logger.info(f"Ended conversation session: {session_id}")
         return True
     except Exception as e:
         logger.error(f"Error ending conversation: {e}")
