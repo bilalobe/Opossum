@@ -9,14 +9,97 @@
 | 3 (Tertiary)  | Transformers | Local library | Basic capabilities, offline operation      | Higher latency, limited model size             |
 | 4 (Emergency) | Client-side  | JavaScript    | Basic scripted responses                   | Very limited capabilities, no real AI          |
 
-## 8.2 Activation Conditions
+## 8.2 Hybrid Model Implementation
 
-| Fallback Path           | Activation Conditions                                        | Detection Method                          |
-|-------------------------|--------------------------------------------------------------|-------------------------------------------|
-| Gemini → Ollama         | API unavailable, rate limit exceeded, authentication failure | HTTP errors (429, 401, 403, 5xx), timeout |
-| Ollama → Transformers   | Connection failure, resource exhaustion                      | Socket errors, initialization failure     |
-| Server → Client         | All server services unavailable, network failure             | Multiple failed API requests              |
-| Any → Preferred Service | Previously unavailable service now available                 | Periodic health checks                    |
+The system implements an intelligent hybrid model backend that dynamically selects and combines different model capabilities based on availability and requirements:
+
+### 8.2.1 Backend Selection Strategy
+
+The hybrid model uses a weighted scoring system to select the most appropriate backend:
+
+| Capability       | Weight | Description                                      |
+|-----------------|--------|--------------------------------------------------|
+| Text Processing | 0.3    | Basic text understanding and generation          |
+| Reasoning       | 0.3    | Complex reasoning and inference capabilities     |
+| Multimodal      | 0.2    | Ability to process images with text             |
+| Latency         | 0.1    | Response time importance                        |
+| Resource Usage  | 0.1    | System resource consumption consideration        |
+
+### 8.2.2 Service Capabilities
+
+Each service is scored based on its capabilities:
+
+#### Gemini API
+- Text Processing: 0.9
+- Reasoning: 0.95
+- Multimodal: 1.0
+- Latency: 0.6
+- Resource Usage: 0.2
+
+#### Ollama
+- Text Processing: 0.8
+- Reasoning: 0.7
+- Multimodal: 0.0
+- Latency: 0.8
+- Resource Usage: 0.6
+
+#### Transformers
+- Text Processing: 0.7
+- Reasoning: 0.5
+- Multimodal: 0.0
+- Latency: 0.4
+- Resource Usage: 0.8
+
+### 8.2.3 Implementation Features
+
+The hybrid model implementation includes:
+
+1. **Lazy Backend Initialization**
+   - Backends are created only when needed
+   - Reduces resource usage and startup time
+
+2. **Real-time Availability Checks**
+   - Integrates with ServiceAvailability monitoring
+   - Considers service health in selection decisions
+
+3. **Intelligent Routing**
+   - Fast path for image-related queries to Gemini
+   - Weighted capability scoring for text queries
+   - Automatic fallback to next best available service
+
+4. **Error Handling**
+   - Graceful degradation when services fail
+   - Automatic fallback to Transformers as last resort
+   - Clear error logging and user communication
+
+### 8.2.4 Selection Process
+
+1. Check service availability status
+2. Quick check for image processing needs
+   - Route directly to Gemini if available
+3. Calculate capability scores for available services
+4. Select highest scoring available backend
+5. Initialize backend if needed
+6. Monitor response and handle failures
+
+### 8.2.5 Recovery and Resilience
+
+The hybrid implementation provides several layers of resilience:
+
+- Automatic failover to next best service
+- Lazy initialization to prevent cascading failures
+- Clear logging for debugging and monitoring
+- Graceful degradation of capabilities
+- User-friendly error messages
+
+### 8.2.6 Configuration
+
+Service configuration is managed through:
+
+- `Config.MODEL_CONFIGS` for model-specific settings
+- Capability weights in HybridModelBackend
+- ServiceAvailability check intervals
+- Backend-specific timeouts and retry settings
 
 ## 8.3 Fallback Implementation
 
