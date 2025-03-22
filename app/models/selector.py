@@ -1,6 +1,6 @@
-# app/models/selector.py
 import logging
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Optional
+import time
 
 from app.config import Config
 from app.models.availability import ServiceAvailability
@@ -50,11 +50,19 @@ class ModelSelector:
         self.topic_detector = topic_detector
         self.metrics = metrics
         self.availability = ServiceAvailability()
+        self._last_availability_check = 0
 
         # Define the 3x3 capability matrix for model selection
         # Format: {provider: {model: {capability: score}}}
         self.capability_matrix = {
             "ollama": {
+                "llava": {
+                    "text_processing": 0.7,
+                    "multimodal": 0.9,
+                    "image_understanding": 0.85,
+                    "offline_capable": 1.0,
+                    "windows_compatible": 1.0 if Config.IS_WINDOWS else 0.0,
+                },
                 "gemma": {
                     "text_processing": 0.8,
                     "reasoning": 0.6,
@@ -65,8 +73,8 @@ class ModelSelector:
                 },
                 "gemini-thinking": None,  # Not available
                 "miniLM": {
-                    "embeddings": 0.8,
-                    "topic_detection": 0.9,
+                    "embeddings": 0.9,
+                    "topic_detection": 0.95,
                     "resource_usage": 0.3,  # Very efficient
                     "offline_capable": 1.0,
                     "windows_compatible": 1.0,
@@ -114,8 +122,14 @@ class ModelSelector:
         Select the best model based on content, system capabilities, and current availability
         Returns: (model_name, confidence, provider)
         """
-        # First check service availability
-        await self.availability.check_all_services()
+        # Check if we have a cached selection for this input
+        cache_key = f"model_selection_{user_message}_{conversation_stage}_{has_image}"
+        cached_selection = get_from_cache(cache_key)
+        if cached_selection:
+            return cached_selection
+
+        # Check service availability (with caching to avoid frequent checks)
+        await self._check_availability()
 
         # Only use available backends
         available_backends = {}
@@ -125,25 +139,38 @@ class ModelSelector:
 
         # Fast path for images - only use Gemini if it's available
         if has_image and "gemini" in available_backends and "gemini-thinking" in available_backends["gemini"]:
-            return "gemini-thinking", 1.0, "gemini"
+            model_selection = ("gemini-thinking", 1.0, "gemini")
+            add_to_cache(cache_key, model_selection, ttl=10)  # Cache for 10 seconds
+            return model_selection
         elif has_image:
             # If image requested but Gemini not available, log warning
             logger.warning("Image processing requested but Gemini unavailable, using text-only model")
 
         # Determine task requirements
-        task_requirements = self._analyze_task_requirements(user_message, conversation_stage)
+        task_requirements = self._analyze_task_requirements(user_message, conversation_stage, has_image)
 
         # Add availability as a high-priority requirement
         task_requirements["available"] = 1.0  # Maximum importance
 
         # Match to capabilities, but only for available services
-        model, confidence, provider = self._match_to_capabilities(
-            task_requirements, available_backends)
+        model_selection = self._match_to_capabilities(task_requirements, available_backends)
+        
+        # Cache the result
+        add_to_cache(cache_key, model_selection, ttl=10)  # Cache for 10 seconds
+        
+        logger.info(f"Selected {model_selection[2]}/{model_selection[0]} with confidence {model_selection[1]:.2f}")
+        return model_selection
 
-        logger.info(f"Selected {provider}/{model} with confidence {confidence:.2f} (availability-aware)")
-        return model, confidence, provider
+    async def _check_availability(self):
+        """Check service availability with caching to reduce API calls"""
+        current_time = time.time()
+        
+        # Only check availability if the last check was more than Config.AVAILABILITY_CACHE_TTL seconds ago
+        if current_time - self._last_availability_check > Config.AVAILABILITY_CACHE_TTL:
+            await self.availability.check_all_services()
+            self._last_availability_check = current_time
 
-    def _match_to_capabilities(self, requirements, available_backends):
+    def _match_to_capabilities(self, requirements, available_backends) -> Tuple[str, float, str]:
         """Match requirements to capabilities, considering only available services"""
         best_score = -1
         best_model = None
@@ -155,13 +182,14 @@ class ModelSelector:
                 if not capabilities:
                     continue
 
-                # Calculate score as before
+                # Calculate score based on matching capabilities to requirements
                 score = 0
                 matches = 0
 
                 for req, req_value in requirements.items():
                     if req in capabilities:
                         if req in ["latency", "resource_usage"]:
+                            # For these metrics, lower is better
                             score += (1 - capabilities[req]) * req_value
                         else:
                             score += capabilities[req] * req_value
@@ -170,7 +198,7 @@ class ModelSelector:
                 # Add availability bonus
                 score += 0.5  # Bonus for being available
 
-                # Normalize score
+                # Normalize score based on total possible score
                 normalized_score = score / (max(1, sum(requirements.values())) + 0.5)
 
                 if normalized_score > best_score:
@@ -178,7 +206,7 @@ class ModelSelector:
                     best_model = model
                     best_provider = provider
 
-        # Fallback if no available service found
+        # Fallback if no suitable available model found
         if not best_model or best_score < 0.4:
             logger.warning("No suitable available model found, falling back to transformers")
             if "transformers" in available_backends and "gemma" in available_backends["transformers"]:
@@ -191,10 +219,8 @@ class ModelSelector:
 
         return best_model, best_score, best_provider
 
-    def _analyze_task_requirements(self, user_message: str) -> Dict[str, float]:
-        """Analyze the task to determine requirements
-        :rtype: object
-        """
+    def _analyze_task_requirements(self, user_message: str, conversation_stage: str, has_image: bool) -> Dict[str, float]:
+        """Analyze the task to determine requirements based on message content, conversation stage, and image presence"""
         requirements = {
             "text_processing": 0.5,  # Base requirement
             "reasoning": 0.3,  # Base requirement
@@ -207,36 +233,58 @@ class ModelSelector:
             "windows_compatible": 1.0 if Config.IS_WINDOWS else 0.0,
         }
 
+        # Adjust based on conversation stage
+        if conversation_stage == "greeting":
+            # Simple responses need less reasoning
+            requirements["reasoning"] = 0.2
+            requirements["latency"] = 0.7  # Prioritize fast response for greeting
+        elif conversation_stage == "follow_up":
+            # Follow-up questions often need more context and reasoning
+            requirements["reasoning"] = 0.6
+        
         # Check for complex reasoning needs
         if _requires_complex_reasoning(user_message):
             requirements["reasoning"] = 0.9
 
         # Topic specific requirements
-        similarities = self._get_topic_similarities(user_message)
-        max_topic, max_score = max(similarities.items(), key=lambda x: x[1]) if similarities else (None, 0)
+        if self.topic_detector:
+            similarities = self._get_topic_similarities(user_message)
+            if similarities:
+                max_topic, max_score = max(similarities.items(), key=lambda x: x[1])
 
-        if max_topic and max_score > 0.6:
-            if max_topic in ["diet_query", "habitat_query", "snake_resistance"]:
-                requirements["text_processing"] = 0.7
-                requirements["reasoning"] = 0.4
-            elif max_topic in ["behavior_query", "general_info"]:
-                requirements["reasoning"] = 0.8
+                if max_score > 0.6:
+                    if max_topic in ["diet_query", "habitat_query", "snake_resistance"]:
+                        requirements["text_processing"] = 0.7
+                        requirements["reasoning"] = 0.4
+                    elif max_topic in ["behavior_query", "general_info"]:
+                        requirements["reasoning"] = 0.8
+
+        if has_image:
+            requirements["multimodal"] = 1.0
+            requirements["image_understanding"] = 0.9
 
         return requirements
 
-    def _get_topic_similarities(self, user_message: str) -> Dict[str, float]:
+    def _get_topic_similarities(self, user_message: str) -> Optional[Dict[str, float]]:
         """Calculate similarity scores between the user message and all topics"""
+        if not self.topic_detector:
+            return None
+            
         cache_key = f"similarity_{user_message}"
         similarities = get_from_cache(cache_key)
 
         if not similarities:
-            message_embedding = self.topic_detector.model.encode(user_message.lower())
+            try:
+                message_embedding = self.topic_detector.model.encode(user_message.lower())
 
-            similarities = {}
-            for topic, embedding in self.topic_detector.topic_embeddings.items():
-                similarity = self.topic_detector.cosine_similarity([message_embedding], [embedding])[0][0]
-                similarities[topic] = similarity
+                similarities = {}
+                for topic, embedding in self.topic_detector.topic_embeddings.items():
+                    similarity = self.topic_detector.cosine_similarity([message_embedding], [embedding])[0][0]
+                    similarities[topic] = similarity
 
-            add_to_cache(cache_key, similarities)
+                add_to_cache(cache_key, similarities, ttl=300)  # Cache for 5 minutes
+            except Exception as e:
+                logger.error(f"Error calculating topic similarities: {e}")
+                return None
 
         return similarities
