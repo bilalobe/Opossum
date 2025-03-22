@@ -1,18 +1,78 @@
-# Opossum Search Documentation
 
-Welcome to the Opossum Search documentation. This site provides detailed information about the system's architecture, features, and operational guidelines.
+Welcome to Opossum Search, an intelligent search system combining natural language processing with opossum-themed interactions.
 
-## Service Availability
+## Overview
 
-The service availability documentation describes how the system ensures continuous operation through monitoring, failover mechanisms, and service recovery procedures.
+Opossum Search provides a unique blend of advanced AI capabilities and playful interactions, all while maintaining high availability and reliability.
 
-- [Context and Scope](service-availability/context-and-scope.md)
-- [Quality Requirements](service-availability/quality-requirements.md)
-- [Architecture Constraints](service-availability/architecture-constraints.md)
-- [Availability Monitoring](service-availability/availability-monitoring.md)
-- [Error Handling](service-availability/service-outage.md)
-- [Rate Limiting](service-availability/rate-limiting-throttling.md)
-- [Logging and Alerts](service-availability/log-alerts.md)
-- [Fallback Mechanisms](service-availability/fallback-mechanisms.md)
-- [Testing and Validation](service-availability/testing-validation.md)
-- [Diagrams](service-availability/processing-diagrams.md)
+## Core Features
+
+### Conversation System
+- Natural language understanding
+- Topic-aware responses
+- Sentiment tracking
+- Multi-model backend support
+
+### Service Reliability
+- Continuous monitoring
+- Automatic failover
+- Rate limiting protection
+- Hybrid model architecture
+
+### Special Features
+- Image processing capabilities
+- Background ambiance generation
+- Opossum National Day celebration (October 18th)
+- SVG visualization system
+
+## Technical Stack
+
+### AI Components
+- Multiple LLM backends (Gemini, Ollama, Transformers)
+- Sentence transformers for topic detection
+- Markov chains for ambient text
+- Sentiment analysis system
+
+### Infrastructure
+- Distributed caching
+- Health monitoring
+- Error tracking
+- Performance metrics
+
+### Processing
+- Image handling
+- SVG generation
+- Real-time analytics
+- Background processing
+
+## Documentation Sections
+
+### Service Availability
+Learn about our robust service architecture, including monitoring, failover mechanisms, and recovery procedures.
+
+### Conversation Management
+Explore how we handle natural conversations, from topic detection to response generation.
+
+### Image Processing
+Discover our image processing capabilities and SVG generation system.
+
+### Model Integration
+Understand how we combine multiple AI models for optimal performance.
+
+### Infrastructure
+Deep dive into our caching, monitoring, and configuration systems.
+
+### API Reference
+Complete documentation of available endpoints and integration options.
+
+### Development Guide
+Everything you need to start contributing to Opossum Search.
+
+## Getting Started
+
+1. Review the development guide
+2. Set up your local environment
+3. Explore the API documentation
+4. Run the test suite
+
+For questions or support, check our development guide or open an issue in our repository.
