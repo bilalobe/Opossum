@@ -78,7 +78,7 @@ class OllamaBackend(ModelBackend):
         max_retries = 3
         for attempt in range(max_retries):
             try:
-                response = await http_client.post(
+                response = await self.http_client.post(
                     f"{self.api_url}/api/generate",
                     json={
                         "model": self.model_name,
