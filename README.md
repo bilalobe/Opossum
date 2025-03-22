@@ -14,7 +14,7 @@ Opossum Search is an adaptive chat interface with multiple AI backend services, 
 - 🦝 Opossum-themed content generation
 - 😊 Contextual emoji integration
 - ✨ Special highlighting for opossum-related terms
-- 🔌 RESTful API for integration with the outer world
+- 🔌 GraphQL API for integration with other services
 
 ## Architecture
 
@@ -84,31 +84,33 @@ The system continually monitors service health and adapts accordingly:
 - Visualizes current service status
 - Automatically selects the most appropriate backend based on request type and service health
 
-## REST API
+## GraphQL API
 
-Opossum Search provides a versioned REST API for integration with other services:
+Opossum Search provides a GraphQL API for integration with other services:
 
-- **Service Status**: Check the availability of AI backends
-- **Chat Endpoints**: Send and receive messages via API
+- **Service Status**: Query the availability of AI backends
+- **Chat Operations**: Send messages and receive responses
 - **Image Processing**: Submit images for analysis
 - **Service Control**: Force service checks and manage backend selection
 
 API documentation is available in the MkDocs documentation under API Reference, including:
-- Available routes and endpoints
-- Request/response formats
-- Error codes and handling
+- GraphQL schema details
+- Available queries and mutations
+- Error handling
 - Rate limits and throttling policies
-- Webhook integration options
+- Subscription options for real-time updates
 
 Example usage:
 ```bash
 # Check service status
-curl http://localhost:5000/api/v1/service-status
+curl -X POST http://localhost:5000/graphql \
+  -H "Content-Type: application/json" \
+  -d '{"query": "{ serviceStatus { name, status, responseTime, availability } }"}'
 
 # Send a chat message
-curl -X POST http://localhost:5000/api/v1/chat \
+curl -X POST http://localhost:5000/graphql \
   -H "Content-Type: application/json" \
-  -d '{"message": "Tell me about opossums"}'
+  -d '{"query": "mutation { sendMessage(message: \"Tell me about opossums\") { response, service, timestamp } }"}'
 ```
 
 ## Visual Features
