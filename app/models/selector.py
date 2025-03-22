@@ -1,10 +1,10 @@
 # app/models/selector.py
 import logging
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple
+
 from app.config import Config
-from app.conversation.topic_detector import TopicDetector
-from app.utils.cache import get_from_cache, add_to_cache
 from app.models.availability import ServiceAvailability
+from app.utils.infrastructure.cache import get_from_cache, add_to_cache
 
 logger = logging.getLogger(__name__)
 
@@ -58,43 +58,43 @@ class ModelSelector:
                 "gemma": {
                     "text_processing": 0.8,
                     "reasoning": 0.6,
-                    "latency": 0.9,          # Lower is better
-                    "resource_usage": 0.5,    # Lower is better
+                    "latency": 0.9,  # Lower is better
+                    "resource_usage": 0.5,  # Lower is better
                     "offline_capable": 1.0,
                     "windows_compatible": 0.0,  # Not Windows compatible
                 },
-                "gemini-thinking": None,      # Not available
+                "gemini-thinking": None,  # Not available
                 "miniLM": {
                     "embeddings": 0.8,
                     "topic_detection": 0.9,
-                    "resource_usage": 0.3,     # Very efficient
+                    "resource_usage": 0.3,  # Very efficient
                     "offline_capable": 1.0,
                     "windows_compatible": 1.0,
                 }
             },
             "gemini": {
-                "gemma": None,               # Not available
+                "gemma": None,  # Not available
                 "gemini-thinking": {
                     "text_processing": 0.9,
                     "reasoning": 0.95,
                     "multimodal": 1.0,
-                    "latency": 0.6,          # Cloud latency
-                    "resource_usage": 0.2,    # Cloud-based
+                    "latency": 0.6,  # Cloud latency
+                    "resource_usage": 0.2,  # Cloud-based
                     "offline_capable": 0.0,
                     "windows_compatible": 1.0,
                 },
-                "miniLM": None               # Not available
+                "miniLM": None  # Not available
             },
             "transformers": {
                 "gemma": {
                     "text_processing": 0.7,
                     "reasoning": 0.5,
-                    "latency": 0.5,          # High local latency
-                    "resource_usage": 0.8,    # High resources
+                    "latency": 0.5,  # High local latency
+                    "resource_usage": 0.8,  # High resources
                     "offline_capable": 1.0,
                     "windows_compatible": 1.0,
                 },
-                "gemini-thinking": None,      # Not available
+                "gemini-thinking": None,  # Not available
                 "miniLM": {
                     "embeddings": 0.8,
                     "topic_detection": 0.9,
@@ -108,7 +108,8 @@ class ModelSelector:
         # Available backends (depends on environment)
         self.available_backends = _determine_available_backends()
 
-    async def select_model(self, user_message: str, conversation_stage: str, has_image: bool = False) -> Tuple[str, float, str]:
+    async def select_model(self, user_message: str, conversation_stage: str, has_image: bool = False) -> Tuple[
+        str, float, str]:
         """
         Select the best model based on content, system capabilities, and current availability
         Returns: (model_name, confidence, provider)
@@ -196,7 +197,7 @@ class ModelSelector:
         """
         requirements = {
             "text_processing": 0.5,  # Base requirement
-            "reasoning": 0.3,        # Base requirement
+            "reasoning": 0.3,  # Base requirement
             "multimodal": 0.0,
             "embeddings": 0.0,
             "topic_detection": 0.0,
@@ -222,7 +223,6 @@ class ModelSelector:
                 requirements["reasoning"] = 0.8
 
         return requirements
-
 
     def _get_topic_similarities(self, user_message: str) -> Dict[str, float]:
         """Calculate similarity scores between the user message and all topics"""

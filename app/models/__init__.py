@@ -1,13 +1,13 @@
 # app/models/__init__.py
 import logging
-import asyncio
-from app.models.gemini import GeminiBackend
-from app.models.ollama import OllamaBackend
-from app.models.transformers import TransformersBackend
-from app.models.selector import ModelSelector
-from app.models.availability import ServiceAvailability
+
 from app.config import Config
 from app.conversation import topic_detector
+from app.models.availability import ServiceAvailability
+from app.models.gemini import GeminiBackend
+from app.models.ollama import OllamaBackend
+from app.models.selector import ModelSelector
+from app.models.transformers import TransformersBackend
 
 logger = logging.getLogger(__name__)
 
@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 availability_monitor = ServiceAvailability()
 model_selector = ModelSelector(topic_detector)
 model_selector.availability = availability_monitor  # Attach availability monitor
+
 
 async def get_model_backend(user_message=None, conversation_stage=None, has_image=False):
     """Return the appropriate model backend based on message content and availability"""

@@ -1,8 +1,10 @@
 import asyncio
 import logging
+
 import httpx
-from app.models.base import ModelBackend
+
 from app.config import Config
+from app.models.base import ModelBackend
 
 logger = logging.getLogger(__name__)
 
@@ -37,4 +39,3 @@ async def generate_response(prompt):
 
 class OllamaBackend(ModelBackend):
     """Backend for local Ollama instance"""
-

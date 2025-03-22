@@ -1,8 +1,10 @@
 import logging
-from app.models.base import ModelBackend
+
 from app.config import Config
+from app.models.base import ModelBackend
 
 logger = logging.getLogger(__name__)
+
 
 class TransformersBackend(ModelBackend):
     """Backend for HuggingFace Transformers pipeline"""

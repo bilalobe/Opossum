@@ -1,7 +1,10 @@
 # app/models/gemini.py
 import base64
-from app.models.base import ModelBackend
+from venv import logger
+
 from app.config import Config
+from app.models.base import ModelBackend
+
 
 class GeminiBackend(ModelBackend):
     """Backend for Google's Gemini API with multimodal support"""
