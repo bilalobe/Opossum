@@ -56,6 +56,8 @@ markdown_extensions:
   - pymdownx.superfences
   - pymdownx.highlight
   - pymdownx.details
+  - toc:
+      permalink: true
 
 # Navigation structure
 nav:
@@ -69,8 +71,57 @@ nav:
     - Rate Limiting: service-availability/rate-limiting-throttling.md
     - Logging and Alerts: service-availability/log-alerts.md
     - Fallback Mechanisms: service-availability/fallback-mechanisms.md
+    - Hybrid Model: service-availability/hybrid-model.md
     - Testing and Validation: service-availability/testing-validation.md
     - Diagrams: service-availability/processing-diagrams.md
+  - Conversation Management:
+    - Topic Detection: conversation/topic-detection.md
+    - Conversation Flow: conversation/conversation-flow.md
+    - Response Generation: conversation/response-generation.md
+    - NLP Components: conversation/nlp-components.md
+    - Markov Chain Text: conversation/markov-generation.md
+  - GraphQL API:
+    - Getting Started: graphql/getting-started.md
+  - Image Processing:
+    - Overview: image-processing/overview.md
+    - Effects and Filters: image-processing/effects.md
+    - SVG Generation: image-processing/svg-generation.md
+    - Performance Optimization: image-processing/optimization.md
+    - Caching Strategy: image-processing/caching.md
+  - Model Integration:
+    - Architecture: model-integration/architecture.md
+    - Backend Selection: model-integration/backend-selection.md
+    - Capability Matrix: model-integration/capability-matrix.md
+    - Provider Integration: model-integration/providers.md
+    - Model Configuration: model-integration/configuration.md
+  - Infrastructure:
+    - Caching System: infrastructure/caching.md
+    - Performance Monitoring: infrastructure/monitoring.md
+    - Configuration Management: infrastructure/configuration.md
+    - Error Handling: infrastructure/error-handling.md
+    - Logging Strategy: infrastructure/logging.md
+  - API Reference:
+    - Routes: api/routes.md
+    - Request/Response: api/request-response.md
+    - Error Codes: api/error-codes.md
+    - Rate Limits: api/rate-limits.md
+    - Webhook Integration: api/webhooks.md
+  - Development:
+    - Getting Started: development/getting-started.md
+    - Architecture Overview: development/architecture.md
+    - Contributing: development/contributing.md
+    - Testing Guide: development/testing.md
+    - Deployment: development/deployment.md
+  - Features:
+    - Opossum National Day: features/national-day.md
+    - Easter Eggs: features/easter-eggs.md
+    - Special Events: features/special-events.md
+    - Background Stories: features/background-stories.md
+  - About:
+    - Project History: about/history.md
+    - Team: about/team.md
+    - Roadmap: about/roadmap.md
+    - License: about/license.md
 
 # Plugins
 plugins:
