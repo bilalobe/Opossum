@@ -1,191 +1,106 @@
+
 # 10. Diagrams and Visuals
 
 ## 10.1 System Architecture Diagram
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                       Client Application                     │
-└───────────────────────────────┬─────────────────────────────┘
-                                │
-                                ▼
-┌─────────────────────────────────────────────────────────────┐
-│                      Service Router                          │
-└───────┬─────────────────────┬────────────────────┬──────────┘
-        │                     │                    │
-        ▼                     ▼                    ▼
-┌───────────────┐    ┌───────────────┐    ┌───────────────┐
-│   Gemini API   │    │     Ollama    │    │  Transformers │
-│  (External)    │    │  (Local API)  │    │ (Local Lib)   │
-└───────────────┘    └───────────────┘    └───────────────┘
-        │                     │                    │
-        └─────────────────────┼────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                Availability Monitoring System                │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    Client["Client Application"]
+    Router["Service Router"]
+    GeminiAPI["Gemini API\n(External)"]
+    Ollama["Ollama\n(Local API)"]
+    Transformers["Transformers\n(Local Lib)"]
+    Monitoring["Availability Monitoring System"]
+
+    Client --> Router
+    Router --> GeminiAPI
+    Router --> Ollama
+    Router --> Transformers
+    GeminiAPI & Ollama & Transformers --> Monitoring
 ```
 
 ## 10.2 Service Monitoring Flowchart
 
-```
-┌─────────────┐                 ┌────────────────┐
-│  Start      │                 │ Check Interval │
-│ Application ├────────────────►│   Reached?     │
-└─────────────┘                 └────────┬───────┘
-                                         │
-                                         ▼
-┌─────────────┐                 ┌────────────────┐
-│   Update    │                 │ Check Service  │
-│   Cache     │◄────────────────┤ Availability   │
-└─────┬───────┘                 └────────────────┘
-      │
-      ▼
-┌─────────────┐                 ┌────────────────┐
-│  Status     │     Yes         │ Status         │
-│  Changed?   ├────────────────►│ Change Event   │
-└─────┬───────┘                 └────────┬───────┘
-      │                                  │
-      │ No                               ▼
-      │                         ┌────────────────┐
-      │                         │ Update Logs &  │
-      │                         │ Send Alerts    │
-      │                         └────────────────┘
-      ▼
-┌─────────────┐
-│ Wait for    │
-│ Next Check  │
-└─────────────┘
+```mermaid
+flowchart TD
+    Start["Start Application"] --> CheckInterval["Check Interval Reached?"]
+    CheckInterval --> CheckService["Check Service Availability"]
+    CheckService --> UpdateCache["Update Cache"]
+    UpdateCache --> StatusChanged["Status Changed?"]
+    StatusChanged -- Yes --> StatusEvent["Status Change Event"]
+    StatusEvent --> UpdateLogs["Update Logs & Send Alerts"]
+    StatusChanged -- No --> Wait["Wait for Next Check"]
 ```
 
 ## 10.3 Failover Process Diagram
 
-```
-┌───────────────┐         ┌───────────────┐         ┌───────────────┐
-│ Request       │         │ Service        │         │ Service       │
-│ Received      ├────────►│ Available?     ├─Yes────►│ Rate-Limited? │
-└───────────────┘         └───────┬───────┘         └───────┬───────┘
-                                  │                          │
-                                  │ No                       │ No
-                                  ▼                          ▼
-                          ┌───────────────┐         ┌───────────────┐
-                          │ Try Next      │         │ Process with  │
-                          │ Service       │         │ Primary Service│
-                          └───────┬───────┘         └───────────────┘
-                                  │
-                                  │
-                                  ▼
-                          ┌───────────────┐         ┌───────────────┐
-                          │ Any Service   │         │ Return Error  │
-                          │ Available?    ├─No─────►│ Use Client    │
-                          └───────┬───────┘         │ Fallback      │
-                                  │                 └───────────────┘
-                                  │ Yes
-                                  ▼
-                          ┌───────────────┐
-                          │ Process with  │
-                          │ Available     │
-                          │ Service       │
-                          └───────────────┘
+```mermaid
+flowchart TD
+    Request["Request Received"] --> ServiceAvailable["Service Available?"]
+    ServiceAvailable -- Yes --> RateLimited["Service Rate-Limited?"]
+    ServiceAvailable -- No --> TryNext["Try Next Service"]
+    RateLimited -- No --> ProcessPrimary["Process with Primary Service"]
+    TryNext --> AnyAvailable["Any Service Available?"]
+    AnyAvailable -- No --> ReturnError["Return Error\nUse Client Fallback"]
+    AnyAvailable -- Yes --> ProcessAvailable["Process with\nAvailable Service"]
 ```
 
 ## 10.4 Rate Limit Monitoring Diagram
 
-```
-┌───────────────┐         ┌───────────────┐
-│ Track API     │         │ Reset         │
-│ Request       ├────────►│ Period        │
-└───────┬───────┘         │ Elapsed?      │
-        │                 └───────┬───────┘
-        │                         │
-        │                         │ Yes
-        │                         ▼
-        │                 ┌───────────────┐
-        │                 │ Reset         │
-        │                 │ Counters      │
-        │                 └───────┬───────┘
-        │                         │
-        ▼                         │
-┌───────────────┐                 │
-│ Increment     │◄────────────────┘
-│ Counters      │
-└───────┬───────┘
-        │
-        ▼
-┌───────────────┐         ┌───────────────┐
-│ Approaching   │         │ Log Warning    │
-│ Limit?        ├─Yes────►│ Prepare       │
-└───────┬───────┘         │ Fallback      │
-        │                 └───────────────┘
-        │ No
-        ▼
-┌───────────────┐
-│ Continue      │
-│ Normal        │
-│ Operation     │
-└───────────────┘
+```mermaid
+flowchart TD
+    TrackAPI["Track API Request"] --> ResetPeriod["Reset Period Elapsed?"]
+    ResetPeriod -- Yes --> ResetCounters["Reset Counters"]
+    ResetCounters --> IncrementCounters["Increment Counters"]
+    TrackAPI --> IncrementCounters
+    IncrementCounters --> ApproachingLimit["Approaching Limit?"]
+    ApproachingLimit -- Yes --> LogWarning["Log Warning\nPrepare Fallback"]
+    ApproachingLimit -- No --> ContinueNormal["Continue Normal Operation"]
 ```
 
 ## 10.5 Recovery Detection Process
 
-```
-┌───────────────┐         ┌───────────────┐
-│ Service       │         │ Periodic      │
-│ Unavailable   ├────────►│ Health        │
-└───────────────┘         │ Check         │
-                          └───────┬───────┘
-                                  │
-                                  ▼
-                          ┌───────────────┐         ┌───────────────┐
-                          │ Service       │         │ Continue      │
-                          │ Recovered?    ├─No─────►│ Using         │
-                          └───────┬───────┘         │ Fallback      │
-                                  │                 └───────────────┘
-                                  │ Yes
-                                  ▼
-                          ┌───────────────┐
-                          │ Log Recovery  │
-                          │ Update Status │
-                          └───────┬───────┘
-                                  │
-                                  ▼
-                          ┌───────────────┐
-                          │ Resume Using  │
-                          │ Preferred     │
-                          │ Service       │
-                          └───────────────┘
+```mermaid
+flowchart TD
+    Unavailable["Service Unavailable"] --> HealthCheck["Periodic Health Check"]
+    HealthCheck --> Recovered["Service Recovered?"]
+    Recovered -- No --> ContinueFallback["Continue Using Fallback"]
+    Recovered -- Yes --> LogRecovery["Log Recovery\nUpdate Status"]
+    LogRecovery --> ResumePreferred["Resume Using Preferred Service"]
 ```
 
 ## 10.6 User Experience Flow
 
+```mermaid
+flowchart TD
+    UserQuery["User Submits Query"] --> FrontendProcess["Frontend Processes Input"]
+    FrontendProcess --> APIRequest["API Request to Server"]
+    APIRequest --> ServerAvailable["Server Available?"]
+    ServerAvailable -- No --> ClientFallback["Client-side Fallback Activated"]
+    ClientFallback --> ShowError["Show Error Message with Limited Mode"]
+    ServerAvailable -- Yes --> UsingFallback["Service Using Fallback?"]
+    UsingFallback -- Yes --> NotifyUser["Notify User of Service Limitations"]
+    UsingFallback -- No --> NormalResponse["Normal Response Processing"]
 ```
-┌───────────────┐         ┌───────────────┐         ┌───────────────┐
-│ User          │         │ Frontend      │         │ API Request   │
-│ Submits       ├────────►│ Processes     ├────────►│ to Server     │
-│ Query         │         │ Input         │         │               │
-└───────────────┘         └───────────────┘         └───────┬───────┘
-                                                            │
-        ┌───────────────────────────────────────────────────┘
-        │
-        ▼
-┌───────────────┐         ┌───────────────┐         ┌───────────────┐
-│ Server        │    No   │ Client-side   │         │ Show Error    │
-│ Available?    ├────────►│ Fallback      ├────────►│ Message with  │
-└───────┬───────┘         │ Activated     │         │ Limited Mode  │
-        │                 └───────────────┘         └───────────────┘
-        │ Yes
-        ▼
-┌───────────────┐         ┌───────────────┐
-│ Service       │         │ Notify User   │
-│ Using         ├────────►│ of Service    │
-│ Fallback?     │   Yes   │ Limitations   │
-└───────┬───────┘         └───────────────┘
-        │
-        │ No
-        ▼
-┌───────────────┐
-│ Normal        │
-│ Response      │
-│ Processing    │
-└───────────────┘
+
+## 10.7 C4 Context Diagram
+
+```mermaid
+C4Context
+    title System Context diagram for Opossum Search
+
+    Person(user, "User", "A user of the Opossum Search system")
+    
+    Enterprise_Boundary(b0, "Opossum Search System") {
+        System(searchSystem, "Opossum Search System", "Provides search functionality with multiple model providers")
+        
+        System_Ext(geminiAPI, "Gemini API", "External large language model provider")
+        System_Ext(ollamaSystem, "Ollama", "Local large language model hosting")
+        System_Ext(transformersLib, "Transformers", "Local machine learning library")
+    }
+    
+    Rel(user, searchSystem, "Submits search queries to")
+    Rel(searchSystem, geminiAPI, "Uses for processing when available")
+    Rel(searchSystem, ollamaSystem, "Falls back to when Gemini is unavailable")
+    Rel(searchSystem, transformersLib, "Uses as final fallback option")
 ```
