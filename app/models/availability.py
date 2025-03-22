@@ -54,9 +54,12 @@ class ServiceAvailability:
         self.gemini_usage = {
             "daily_count": 0,
             "minute_count": 0,
+            "tokens_used": 0,
             "day_reset": datetime.now(),
             "minute_reset": datetime.now()
         }
+        
+        self.max_history_items = Config.SERVICE_HISTORY_MAX_ITEMS
 
         # Minimum interval between availability checks
         self.check_interval = timedelta(seconds=30)
@@ -69,63 +72,49 @@ class ServiceAvailability:
         logger.info("ServiceAvailability initialized with 30s check interval and metrics tracking")
 
     async def check_all_services(self):
-        """Check availability of all configured services"""
-        logger.debug("Beginning availability check for all services")
-
-        # Run all checks concurrently
-        await asyncio.gather(
-            self.check_ollama_availability(),
+        """Check availability of all services in parallel."""
+        tasks = [
             self.check_gemini_availability(),
-            self.check_transformers_availability(),
-            self._check_redis_availability()
-        )
-
-        # Update availability percentages after checks
-        self._update_availability_metrics()
-
-        # Log overall availability status
-        available_services = [s for s, status in self.service_status.items()
-                              if status["available"]]
-        logger.info(f"Service availability: {len(available_services)}/4 services available")
+            self.check_ollama_availability(),
+            self.check_transformers_availability()
+        ]
+        await asyncio.gather(*tasks)
 
     def _update_availability_metrics(self):
         """Update availability metrics based on check history"""
         now = datetime.now()
-        # Calculate metrics over a 24-hour window
-        window_start = now - timedelta(hours=24)
-        window_start_timestamp = window_start.timestamp()
-
+        # Use a fixed timestamp instead of repeatedly calculating it
+        window_start_timestamp = (now - timedelta(hours=24)).timestamp()
+        
         for service_name, service_data in self.service_status.items():
-            # Filter history to last 24 hours
+            # Use list comprehension only once and store the result
             recent_history = [ts for ts in service_data["check_history"] if ts > window_start_timestamp]
-
-            # Update the history list with only recent entries
             self.service_status[service_name]["check_history"] = recent_history
-
-            # If we have history, calculate availability
-            if recent_history:
-                # Count successful checks
-                successful_checks = len(recent_history)
-
-                # Calculate expected checks over window (one every check_interval)
-                expected_checks = int(timedelta(hours=24).total_seconds() / self.check_interval.total_seconds())
-
-                # Calculate availability percentage (cap at 100%)
-                availability = min(100.0, (successful_checks / max(1, expected_checks)) * 100)
-                self.service_status[service_name]["availability"] = round(availability, 1)
-
-                # Update status based on availability
-                if self.service_status[service_name]["available"]:
-                    if availability >= 99.0:
-                        self.service_status[service_name]["status"] = "online"
-                    else:
-                        self.service_status[service_name]["status"] = "degraded"
-                else:
-                    self.service_status[service_name]["status"] = "offline"
-            else:
-                # No history, service is considered offline
+            
+            # Early return if no history
+            if not recent_history:
                 self.service_status[service_name]["availability"] = 0
                 self.service_status[service_name]["status"] = "offline"
+                continue
+            
+            # Calculate availability percentage
+            successful_checks = len(recent_history)
+            expected_checks = int(timedelta(hours=24).total_seconds() / self.check_interval.total_seconds())
+            availability = min(100.0, (successful_checks / max(1, expected_checks)) * 100)
+            self.service_status[service_name]["availability"] = round(availability, 2)
+            
+            # Update status based on availability and response time
+            if self.service_status[service_name]["available"]:
+                if availability >= 99.0 and self.service_status[service_name]["response_time"] <= 1000:
+                    self.service_status[service_name]["status"] = "online"
+                else:
+                    self.service_status[service_name]["status"] = "degraded"
+            else:
+                self.service_status[service_name]["status"] = "offline"
+                
+            # Enforce history limit
+            if len(self.service_status[service_name]["check_history"]) > self.max_history_items:
+                self.service_status[service_name]["check_history"] = self.service_status[service_name]["check_history"][-self.max_history_items:]
 
     async def check_ollama_availability(self):
         """Check the availability of the Ollama service"""
@@ -285,32 +274,73 @@ class ServiceAvailability:
                 self.service_status[service_name]["status"] = "online"
         else:
             self.service_status[service_name]["status"] = "offline"
+        
+        # Update Prometheus metrics
+        self._update_prometheus_metrics(service_name)
 
-    def record_gemini_usage(self):
-        """Record Gemini API usage and update availability based on limits"""
+    async def start_background_checks(self, app):
+        """Start background availability checks"""
+        async def background_checker():
+            while True:
+                try:
+                    await self.check_all_services()
+                    # Update cache with latest status
+                    from app.utils.infrastructure.redis_config import add_to_cache
+                    add_to_cache("service_status", self.get_services_for_visualization(), 
+                               ttl=Config.AVAILABILITY_CACHE_TTL*2)
+                except Exception as e:
+                    logger.error(f"Error in background service check: {e}")
+                await asyncio.sleep(Config.AVAILABILITY_CHECK_INTERVAL)
+        
+        # Create task and store in app context
+        app.background_tasks = app.background_tasks if hasattr(app, 'background_tasks') else []
+        app.background_tasks.append(asyncio.create_task(background_checker()))
+        logger.info("Started background service availability checks")
+
+    def record_gemini_usage(self, tokens_used=0):
+        """Record Gemini API usage with token awareness"""
         self._reset_gemini_usage_counters()
-
+        
         self.gemini_usage["daily_count"] += 1
         self.gemini_usage["minute_count"] += 1
-
-        # Update availability if we've hit limits
-        if (self.gemini_usage["daily_count"] >= Config.GEMINI_DAILY_LIMIT or
-                self.gemini_usage["minute_count"] >= Config.GEMINI_RPM_LIMIT):
+        self.gemini_usage["tokens_used"] += tokens_used
+        
+        # Use both request count and token count for limits
+        rate_limited = (
+            self.gemini_usage["daily_count"] >= Config.GEMINI_DAILY_LIMIT or
+            self.gemini_usage["minute_count"] >= Config.GEMINI_RPM_LIMIT or
+            self.gemini_usage["tokens_used"] >= Config.GEMINI_DAILY_TOKEN_LIMIT
+        )
+        
+        if rate_limited:
             self.service_status["gemini"]["available"] = False
+            self.service_status["gemini"]["status"] = "rate_limited"
             logger.warning(
-                f"Gemini service now rate limited: {self.gemini_usage['minute_count']}/min, {self.gemini_usage['daily_count']}/day")
-
-        logger.debug(f"Gemini usage: {self.gemini_usage['daily_count']}/day, {self.gemini_usage['minute_count']}/min")
+                f"Gemini service now rate limited: {self.gemini_usage['minute_count']}/min, "
+                f"{self.gemini_usage['daily_count']}/day, {self.gemini_usage['tokens_used']} tokens"
+            )
+        
+        logger.debug(
+            f"Gemini usage: {self.gemini_usage['daily_count']}/day, "
+            f"{self.gemini_usage['minute_count']}/min, {self.gemini_usage['tokens_used']} tokens"
+        )
+        
+        # Update Prometheus metrics
+        self._update_gemini_metrics(tokens_used)
 
     def _reset_gemini_usage_counters(self):
         """Reset usage counters when their time periods have elapsed"""
         now = datetime.now()
 
-        # Reset daily counter if day has changed
+        # Reset daily counters if day has changed
         if (now - self.gemini_usage["day_reset"]).days > 0:
-            if self.gemini_usage["daily_count"] > 0:
-                logger.info(f"Resetting Gemini daily counter from {self.gemini_usage['daily_count']} to 0")
+            if self.gemini_usage["daily_count"] > 0 or self.gemini_usage["tokens_used"] > 0:
+                logger.info(
+                    f"Resetting Gemini daily counters from {self.gemini_usage['daily_count']} "
+                    f"requests and {self.gemini_usage['tokens_used']} tokens to 0"
+                )
             self.gemini_usage["daily_count"] = 0
+            self.gemini_usage["tokens_used"] = 0
             self.gemini_usage["day_reset"] = now
 
         # Reset minute counter if minute has elapsed
@@ -335,3 +365,65 @@ class ServiceAvailability:
             }
 
         return visualization_data
+
+    def setup_prometheus_metrics(self):
+        """Configure Prometheus metrics for monitoring"""
+        try:
+            from prometheus_client import Gauge, Counter
+            
+            # Create metrics
+            self.metrics = {
+                "availability": {
+                    s: Gauge(f"service_availability_{s}", f"Availability percentage of {s} service")
+                    for s in self.service_status
+                },
+                "response_time": {
+                    s: Gauge(f"service_response_time_{s}", f"Response time in ms for {s} service")
+                    for s in self.service_status
+                },
+                "api_calls": Counter("gemini_api_calls_total", "Total Gemini API calls"),
+                "tokens_used": Counter("gemini_tokens_used_total", "Total Gemini API tokens used"),
+                "model_selection": {
+                    model: Counter(f"model_selection_{model}", f"Number of times {model} was selected")
+                    for model in ["gemini", "ollama", "transformers"]
+                }
+            }
+            logger.info("Prometheus metrics initialized")
+        except ImportError:
+            logger.warning("prometheus_client not installed, metrics disabled")
+            self.metrics = None
+
+    def _update_prometheus_metrics(self, service_name=None):
+        """Update Prometheus metrics"""
+        if not self.metrics:
+            return
+            
+        if service_name:
+            # Update single service metrics
+            self.metrics["availability"][service_name].set(
+                self.service_status[service_name]["availability"]
+            )
+            self.metrics["response_time"][service_name].set(
+                self.service_status[service_name]["response_time"]
+            )
+        else:
+            # Update all service metrics
+            for svc in self.service_status:
+                self.metrics["availability"][svc].set(
+                    self.service_status[svc]["availability"]
+                )
+                self.metrics["response_time"][svc].set(
+                    self.service_status[svc]["response_time"]
+                )
+                
+    def _increment_model_selection(self, model_name):
+        """Increment model selection counter"""
+        if self.metrics and model_name in self.metrics["model_selection"]:
+            self.metrics["model_selection"][model_name].inc()
+
+    def _update_gemini_metrics(self, tokens_used=0):
+        """Update Gemini-specific metrics"""
+        if self.metrics:
+            self.metrics["api_calls"].inc()
+            if tokens_used > 0:
+                self.metrics["tokens_used"].inc(tokens_used)
