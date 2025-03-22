@@ -1,0 +1,309 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Opossum Search</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #search-container {
+            width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        #logo {
+            width: 292px; /* Matches image width */
+            margin: 20px auto;
+            display: block;
+        }
+
+        #chat-display {
+            height: 300px;
+            overflow-y: scroll;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        #user-input {
+            width: calc(100% - 120px); /* Adjust width for the button */
+            height: 60px;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            resize: vertical;
+            vertical-align: top; /* Align with the button */
+        }
+        #send-button {
+            padding: 10px 20px;
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        #browse-button {
+            padding: 10px 20px;
+            background-color: #f0f0f0;
+            color: black;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-left: 10px; /* Add some spacing */
+            vertical-align: top;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        .user-message {
+            color: blue;
+            margin-bottom: 5px;
+            text-align: right; /* User messages on the right */
+        }
+
+        .bot-message {
+            color: green;
+            margin-bottom: 5px;
+            text-align: left; /* Bot messages on the left */
+        }
+
+        .bot-typing {
+            color: grey; /* Typing indicator color */
+            font-style: italic;
+            text-align: left;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+<div id="search-container">
+    <img id="logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Opossum_2.jpg/292px-Opossum_2.jpg" alt="Opossum Logo">
+
+    <div id="chat-display">
+    </div>
+    <label for="user-input"></label><textarea id="user-input" placeholder="Type your message..."></textarea>
+    <button id="browse-button">Browse...</button>
+    <button id="send-button">Send</button>
+
+</div>
+<footer>Powered by opossum search</footer>
+
+<script>
+    const chatDisplay = document.getElementById('chat-display');
+    const userInput = document.getElementById('user-input');
+    const sendButton = document.getElementById('send-button');
+    const browseButton = document.getElementById('browse-button');
+    let conversationStage = "greeting";
+    const availableTopics = { // Simulate browse topics
+        "diet": "Opossum Diet",
+        "habitat": "Opossum Habitat",
+        "behavior": "Opossum Behavior",
+        "florida_opossums": "Opossums in Florida",
+        "snake_resistance": "Opossum Snake Resistance"
+    };
+
+    function addMessage(message, sender, isTyping = false) {
+        const messageDiv = document.createElement('div');
+        messageDiv.textContent = message;
+        messageDiv.classList.add(sender + '-message'); // Add sender class for styling
+        if (isTyping) {
+            messageDiv.classList.add('bot-typing'); // Add typing class
+        }
+        chatDisplay.appendChild(messageDiv);
+        chatDisplay.scrollTop = chatDisplay.scrollHeight; // Scroll to bottom
+    }
+
+    // Initialize with fallback simulation functions in case API isn't available
+    let usingAPI = true;
+
+    async function sendMessageToAPI(userMessage) {
+        try {
+            const response = await fetch('/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: userMessage,
+                    stage: conversationStage
+                })
+            });
+
+            const data = await response.json();
+            // Update conversation stage based on API response
+            if (data.next_stage) {
+                conversationStage = data.next_stage;
+            }
+            return data.response;
+        } catch (error) {
+            console.error('Error:', error);
+            usingAPI = false; // Fall back to simulation
+            return getBotResponse(userMessage);
+        }
+    }
+
+    function getBotResponse(userMessage) { // Fallback simulation function
+        userMessage = userMessage.toLowerCase().trim();
+        let botMessage = "";
+
+        switch (conversationStage) {
+            case "greeting":
+                if (userMessage.includes("hi") || userMessage.includes("hello")) {
+                    botMessage = "Greetings! I am your Opossum Information Assistant. How can I help you explore the fascinating world of opossums today?";
+                    conversationStage = "initial_query";
+                } else {
+                    botMessage = "Sorry, I didn't catch that. Perhaps start with a friendly 'Hello' or ask me about opossums?";
+                }
+                break;
+
+            case "initial_query":
+                // ... rest of the simulation logic
+                botMessage = "I'm in simulation mode now because the API isn't available. Let's talk about opossums!";
+                break;
+
+            default:
+                botMessage = "I'm in simulation mode. Please ask something about opossums.";
+        }
+        return botMessage;
+    }
+
+    async function handleMessage() {
+        const message = userInput.value;
+        if (message.trim() !== "") {
+            addMessage(message, "user");
+            userInput.value = ""; // Clear input
+
+            // Show typing indicator
+            addMessage("Bot is typing...", "bot", true);
+
+            // Check if image is present
+            const imageElement = document.getElementById('preview-image');
+            const hasImage = imageElement.style.display !== 'none';
+            let imageData = null;
+
+            if (hasImage) {
+                imageData = imageElement.src;
+                // Clear the image after sending
+                document.getElementById('clear-image').click();
+            }
+
+            // Get response from API with image if present
+            let botMessage;
+            if (usingAPI) {
+                try {
+                    const response = await fetch('/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            message: message,
+                            stage: conversationStage,
+                            has_image: hasImage,
+                            image_data: imageData
+                        })
+                    });
+
+                    const data = await response.json();
+                    if (data.next_stage) {
+                        conversationStage = data.next_stage;
+                    }
+                    botMessage = data.response;
+                } catch (error) {
+                    console.error('Error:', error);
+                    usingAPI = false;
+                    botMessage = getBotResponse(message);
+                }
+            } else {
+                botMessage = getBotResponse(message);
+            }
+
+            // Remove typing indicator
+            const typingIndicator = chatDisplay.querySelector('.bot-typing');
+            if (typingIndicator) {
+                chatDisplay.removeChild(typingIndicator);
+            }
+
+            // Display response
+            addMessage(botMessage, "bot");
+        }
+    }
+
+    function handleBrowse() {
+        // Simulate browsing more realistically, with topics
+        let browseMessage = "Okay, exploring topics... Here are some opossum topics you can ask me about:\n\n";
+        let topicList = Object.values(availableTopics).map(topic => "* " + topic).join("\n"); // Create bulleted list
+        browseMessage += topicList + "\n\nJust type the name of a topic to learn more!";
+
+        // Show typing indicator
+        addMessage("Bot is typing...", "bot", true);
+
+        // Simulate delay, then show response
+        setTimeout(() => {
+            // Remove typing indicator
+            const typingIndicator = chatDisplay.querySelector('.bot-typing');
+            if (typingIndicator) {
+                chatDisplay.removeChild(typingIndicator);
+            }
+            addMessage(browseMessage, "bot");
+        }, 1000);
+    }
+
+    sendButton.addEventListener('click', handleMessage);
+    userInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleMessage();
+        }
+    });
+    browseButton.addEventListener('click', function() {
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = 'image/*';
+        fileInput.onchange = function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const imageData = event.target.result;
+                    document.getElementById('preview-image').src = imageData;
+                    document.getElementById('preview-image').style.display = 'block';
+                    document.getElementById('clear-image').style.display = 'inline-block';
+                    document.getElementById('image-upload-container').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+        fileInput.click();
+    });
+
+    // Add clear image button functionality
+    document.getElementById('clear-image').addEventListener('click', function() {
+        document.getElementById('preview-image').src = '';
+        document.getElementById('preview-image').style.display = 'none';
+        document.getElementById('clear-image').style.display = 'none';
+        document.getElementById('image-upload-container').style.display = 'none';
+    });
+
+    document.getElementById('user-input').insertAdjacentHTML('afterend', `
+    <div id="image-upload-container" style="margin-top: 10px; display: none;">
+        <img id="preview-image" style="max-width: 200px; max-height: 200px; display: none;"  alt="Generated image" src=""/>
+        <button id="clear-image" style="display: none;">Clear Image</button>
+    </div>
+`   );
+    // Initial bot message
+    addMessage("Hello! I'm the Opossum Search Helper Bot. How can I assist you today?", "bot");
+</script>
+</body>
+</html>

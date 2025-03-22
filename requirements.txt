@@ -1,0 +1,10 @@
+flask~=3.1.0
+httpx~=0.28.1
+cachetools~=6.0.0b1
+sentence-transformers
+scikit-learn
+numpy
+transformers
+requests~=2.32.3
+# Optional dependencies based on backend choice
+google-generativeai
