@@ -1,0 +1,46 @@
+site_name: Opossum Search Documentation
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - toc.integrate
+    - search.suggest
+    - search.highlight
+    - content.tabs.link
+    - content.code.annotation
+    - content.code.copy
+  palette:
+    - scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+markdown_extensions:
+  - tables
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - attr_list
+  - md_in_html
+
+nav:
+  - Home: index.md
+  - Service Availability:
+    - Context and Scope: service-availability/context-and-scope.md
+    - Quality Requirements: service-availability/quality-requirements.md
+    - Architecture Constraints: service-availability/architecture-constraints.md
+    - Availability Monitoring: service-availability/availability-monitoring.md
+    - Error Handling: service-availability/service-outage.md
+    - Rate Limiting: service-availability/rate-limiting-throttling.md
+    - Logging and Alerts: service-availability/log-alerts.md
+    - Fallback Mechanisms: service-availability/fallback-mechanisms.md
+    - Testing and Validation: service-availability/testing-validation.md
+    - Diagrams: service-availability/processing-diagrams.md
