@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Opossum Search API - Schema Visualization</title>
+    <script src="https://cdn.jsdelivr.net/npm/react@16/umd/react.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/react-dom@16/umd/react-dom.production.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/graphql-voyager/dist/voyager.css" />
+    <script src="https://cdn.jsdelivr.net/npm/graphql-voyager/dist/voyager.min.js"></script>
+    <style>
+        body {
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        #voyager {
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+    <div id="voyager"></div>
+    <script>
+        function introspectionProvider(query) {
+            return fetch('/graphql', {
+                method: 'post',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({query: query}),
+                credentials: 'same-origin',
+            }).then(response => response.json());
+        }
+
+        GraphQLVoyager.init(document.getElementById('voyager'), {
+            introspection: introspectionProvider
+        });
+    </script>
+</body>
+</html>
