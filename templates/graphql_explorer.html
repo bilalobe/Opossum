@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Opossum Search GraphQL API Explorer</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="icon" type="image/png" href="/static/img/favicon.png">
+    <style>
+        body, html { height: 100%; margin: 0; padding: 0; }
+        #graphql-explorer { height: 100vh; width: 100%; }
+        header { 
+            background: #2a3746; 
+            color: white; 
+            padding: 0.5rem 1rem; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+        }
+        .api-version-selector {
+            display: flex;
+            align-items: center;
+            margin-right: 1rem;
+        }
+        .api-version-selector select {
+            margin-left: 0.5rem;
+            padding: 0.25rem;
+            border-radius: 4px;
+        }
+    </style>
+    <!-- Load GraphiQL and dependencies -->
+    <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/graphiql/graphiql.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/graphiql/graphiql.min.css">
+</head>
+<body>
+    <header>
+        <h1>Opossum Search GraphQL API Explorer</h1>
+        <div class="api-version-selector">
+            <label for="api-version">API Version:</label>
+            <select id="api-version" onchange="updateGraphQLEndpoint()">
+                <option value="/api/v1/graphql" selected>v1</option>
+                <!-- Additional versions can be added here as the API evolves -->
+            </select>
+        </div>
+    </header>
+    <div id="graphql-explorer"></div>
+
+    <script>
+        // Get the current API version from the selector
+        function getCurrentEndpoint() {
+            const selector = document.getElementById('api-version');
+            return selector.value;
+        }
+
+        // Update the GraphQL endpoint when version changes
+        function updateGraphQLEndpoint() {
+            const endpoint = getCurrentEndpoint();
+            renderGraphiQL(endpoint);
+        }
+
+        // Function to handle GraphQL fetching
+        function graphQLFetcher(endpoint) {
+            return function(graphQLParams) {
+                return fetch(endpoint, {
+                    method: 'post',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(graphQLParams),
+                    credentials: 'include',
+                }).then(function(response) {
+                    return response.json();
+                });
+            }
+        }
+
+        // Render GraphiQL with the current endpoint
+        function renderGraphiQL(endpoint) {
+            ReactDOM.render(
+                React.createElement(GraphiQL, {
+                    fetcher: graphQLFetcher(endpoint),
+                    defaultVariableEditorOpen: true,
+                    headerEditorEnabled: true,
+                }),
+                document.getElementById('graphql-explorer')
+            );
+        }
+
+        // Initialize with the default endpoint
+        document.addEventListener('DOMContentLoaded', function() {
+            renderGraphiQL(getCurrentEndpoint());
+        });
+    </script>
+</body>
+</html>
