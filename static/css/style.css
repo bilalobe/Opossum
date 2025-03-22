@@ -1,0 +1,342 @@
+/* Main styles for Opossum Search */
+
+body {
+    font-family: Arial, sans-serif;
+}
+
+#search-container {
+    width: 800px;
+    margin: 50px auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    position: relative;
+    background-color: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+#logo {
+    width: 292px; /* Matches image width */
+    margin: 20px auto;
+    display: block;
+}
+
+#chat-display {
+    height: 300px;
+    overflow-y: scroll;
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+#user-input {
+    width: calc(100% - 120px); /* Adjust width for the button */
+    height: 60px;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    resize: vertical;
+    vertical-align: top; /* Align with the button */
+}
+
+#send-button {
+    padding: 10px 20px;
+    background-color: #4285f4;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+#browse-button {
+    padding: 10px 20px;
+    background-color: #f0f0f0;
+    color: black;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-left: 10px; /* Add some spacing */
+    vertical-align: top;
+}
+
+#svg-button {
+    padding: 10px 20px;
+    background-color: #34a853;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-left: 10px;
+    vertical-align: top;
+}
+
+footer {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 14px;
+}
+
+.user-message {
+    color: blue;
+    margin-bottom: 5px;
+    text-align: right; /* User messages on the right */
+}
+
+.bot-message {
+    color: green;
+    margin-bottom: 5px;
+    text-align: left; /* Bot messages on the left */
+}
+
+.bot-typing {
+    color: grey; /* Typing indicator color */
+    font-style: italic;
+    text-align: left;
+    margin-bottom: 5px;
+}
+
+.svg-container {
+    margin: 10px 0;
+    text-align: center;
+    width: 100%;
+}
+
+.svg-image {
+    max-width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0px 2px 5px rgba(0,0,0,0.1);
+}
+
+.svg-menu {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 10px 0;
+}
+
+.svg-option {
+    padding: 5px 10px;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.svg-option:hover {
+    background-color: #e0e0e0;
+}
+
+/* Status dashboard styles */
+.status-dashboard {
+    margin-top: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 10px;
+    background-color: #f9f9f9;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+}
+
+.dashboard-title {
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.dashboard-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.refresh-button {
+    padding: 3px 8px;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.auto-refresh {
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    gap: 5px;
+}
+
+.status-timestamp {
+    font-size: 12px;
+    color: #666;
+    font-style: italic;
+}
+
+.service-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.service-card {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 10px;
+    text-align: center;
+}
+
+.service-name {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.service-status {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    margin-bottom: 5px;
+}
+
+.status-online {
+    background-color: #E8F5E9;
+    color: #2E7D32;
+}
+
+.status-degraded {
+    background-color: #FFF8E1;
+    color: #F57F17;
+}
+
+.status-offline {
+    background-color: #FFEBEE;
+    color: #C62828;
+}
+
+.service-metrics {
+    font-size: 12px;
+    color: #666;
+}
+
+/* Opossum-themed AI Text Background Overlay */
+.ai-background-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* Allow clicks to pass through */
+    z-index: -1; /* Behind everything */
+    overflow: hidden;
+    opacity: 0.07; /* Slightly more visible than before */
+    font-family: monospace;
+    color: #5a503f; /* Opossum gray-brown */
+    line-height: 1.2;
+    font-size: 12px;
+    white-space: pre;
+    -webkit-user-select: none; /* Prevent text selection on Safari */
+    user-select: none; /* Prevent text selection */
+}
+
+.ai-background-content {
+    width: 200%;
+    height: 200%;
+    transform-origin: center center;
+    animation: snake-flow 180s linear infinite;
+}
+
+/* Snake-like or "sheng" movement pattern */
+@keyframes snake-flow {
+    0% {
+        transform: translate(-10%, -10%) rotate(0deg) skew(0deg, 0deg);
+    }
+    10% {
+        transform: translate(-15%, -5%) rotate(2deg) skew(2deg, 1deg);
+    }
+    20% {
+        transform: translate(-20%, -15%) rotate(0deg) skew(-2deg, 0deg);
+    }
+    30% {
+        transform: translate(-25%, -7%) rotate(-2deg) skew(0deg, -2deg);
+    }
+    40% {
+        transform: translate(-30%, -15%) rotate(-1deg) skew(3deg, 0deg);
+    }
+    50% {
+        transform: translate(-35%, -10%) rotate(3deg) skew(-1deg, 2deg);
+    }
+    60% {
+        transform: translate(-40%, -20%) rotate(1deg) skew(2deg, -1deg);
+    }
+    70% {
+        transform: translate(-45%, -10%) rotate(-3deg) skew(-3deg, 0deg);
+    }
+    80% {
+        transform: translate(-50%, -15%) rotate(0deg) skew(0deg, 3deg);
+    }
+    90% {
+        transform: translate(-55%, -5%) rotate(2deg) skew(-2deg, -2deg);
+    }
+    100% {
+        transform: translate(-60%, -20%) rotate(-2deg) skew(1deg, 1deg);
+    }
+}
+
+.ai-background-highlight {
+    color: #8a9a5b; /* Opossum moss green */
+    font-weight: bold;
+}
+
+/* Occasional special highlights for important opossum terms */
+.ai-background-highlight-special {
+    color: #bb8751; /* Warm opossum fur color */
+    font-weight: bold;
+}
+
+/* Individual token animations */
+.token-animate {
+    display: inline-block;
+    animation: float-token 6s ease-in-out infinite;
+    animation-delay: calc(var(--token-delay) * 0.5s);
+}
+
+@keyframes float-token {
+    0%, 100% {
+        transform: translateY(0) rotate(0deg);
+    }
+    25% {
+        transform: translateY(-5px) rotate(2deg);
+    }
+    50% {
+        transform: translateY(0) rotate(0deg);
+    }
+    75% {
+        transform: translateY(5px) rotate(-2deg);
+    }
+}
+
+/* Emoji styling */
+.emoji-token {
+    display: inline-block;
+    animation: pulse-emoji 3s ease-in-out infinite;
+    animation-delay: calc(var(--emoji-delay) * 0.7s);
+}
+
+@keyframes pulse-emoji {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.2);
+    }
+}
