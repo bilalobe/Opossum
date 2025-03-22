@@ -1,7 +1,9 @@
 import logging
+
 from app.config import Config
 
 logger = logging.getLogger(__name__)
+
 
 class TopicDetector:
     """NLP-based topic detection for conversation management"""
