@@ -1,6 +1,6 @@
 flask~=3.1.0
 httpx~=0.28.1
-cachetools~=6.0.0b1
+cachetools>=5.3.2,<6.0
 sentence-transformers
 scikit-learn
 numpy
@@ -32,6 +32,8 @@ graphql-core>=3.2.6
 ariadne>=0.19.1  # For schema introspection
 opentelemetry-instrumentation-flask>=0.40b0  # For metrics and tracing
 ddtrace>=1.18.1  # For Apollo Studio compatibility
+opentelemetry-sdk
+opentelemetry.exporter.otlp
 
 # Middleware
 flask-cors>=4.0.0
