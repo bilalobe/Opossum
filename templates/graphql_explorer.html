@@ -17,16 +17,6 @@
             justify-content: space-between; 
             align-items: center;
         }
-        .api-version-selector {
-            display: flex;
-            align-items: center;
-            margin-right: 1rem;
-        }
-        .api-version-selector select {
-            margin-left: 0.5rem;
-            padding: 0.25rem;
-            border-radius: 4px;
-        }
     </style>
     <!-- Load GraphiQL and dependencies -->
     <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
@@ -37,51 +27,33 @@
 <body>
     <header>
         <h1>Opossum Search GraphQL API Explorer</h1>
-        <div class="api-version-selector">
-            <label for="api-version">API Version:</label>
-            <select id="api-version" onchange="updateGraphQLEndpoint()">
-                <option value="/api/v1/graphql" selected>v1</option>
-                <!-- Additional versions can be added here as the API evolves -->
-            </select>
-        </div>
     </header>
     <div id="graphql-explorer"></div>
 
     <script>
-        // Get the current API version from the selector
-        function getCurrentEndpoint() {
-            const selector = document.getElementById('api-version');
-            return selector.value;
-        }
-
-        // Update the GraphQL endpoint when version changes
-        function updateGraphQLEndpoint() {
-            const endpoint = getCurrentEndpoint();
-            renderGraphiQL(endpoint);
-        }
+        // Fixed endpoint without versioning
+        const GRAPHQL_ENDPOINT = "/api/graphql";
 
         // Function to handle GraphQL fetching
-        function graphQLFetcher(endpoint) {
-            return function(graphQLParams) {
-                return fetch(endpoint, {
-                    method: 'post',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(graphQLParams),
-                    credentials: 'include',
-                }).then(function(response) {
-                    return response.json();
-                });
-            }
+        function graphQLFetcher(graphQLParams) {
+            return fetch(GRAPHQL_ENDPOINT, {
+                method: 'post',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(graphQLParams),
+                credentials: 'include',
+            }).then(function(response) {
+                return response.json();
+            });
         }
 
-        // Render GraphiQL with the current endpoint
-        function renderGraphiQL(endpoint) {
+        // Render GraphiQL
+        function renderGraphiQL() {
             ReactDOM.render(
                 React.createElement(GraphiQL, {
-                    fetcher: graphQLFetcher(endpoint),
+                    fetcher: graphQLFetcher,
                     defaultVariableEditorOpen: true,
                     headerEditorEnabled: true,
                 }),
@@ -89,9 +61,9 @@
             );
         }
 
-        // Initialize with the default endpoint
+        // Initialize when DOM is loaded
         document.addEventListener('DOMContentLoaded', function() {
-            renderGraphiQL(getCurrentEndpoint());
+            renderGraphiQL();
         });
     </script>
 </body>
