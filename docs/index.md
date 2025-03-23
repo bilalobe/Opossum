@@ -1,4 +1,3 @@
-
 Welcome to Opossum Search, an intelligent search system combining natural language processing with opossum-themed interactions.
 
 ## Overview
@@ -62,8 +61,14 @@ Understand how we combine multiple AI models for optimal performance.
 ### Infrastructure
 Deep dive into our caching, monitoring, and configuration systems.
 
-### API Reference
-Complete documentation of available endpoints and integration options.
+### API Documentation
+Explore detailed API documentation:
+- **[Routes](./api/routes.md)**: Overview of available API routes.
+- **[Request and Response](./api/request-response.md)**: Details on request formats and response structures.
+- **[Error Codes](./api/error-codes.md)**: Comprehensive list of API error codes.
+- **[Rate Limits](./api/rate-limits.md)**: Information on API rate limiting policies.
+- **[Webhooks](./api/webhooks.md)**: Guide to setting up and using webhooks.
+- **[Health Endpoints](./api/health-endpoints.md)**: Details on health check endpoints.
 
 ### Development Guide
 Everything you need to start contributing to Opossum Search.
