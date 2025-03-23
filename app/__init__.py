@@ -4,6 +4,8 @@ from flask import Flask, render_template
 from flask_graphql import GraphQLView
 from flask_cors import CORS
 from flask_compress import Compress
+from app.config import Config
+from app.models.hybrid import HybridModelBackend
 from app.routes import bp as main_bp
 from app.api.schema import schema
 from app.api.middleware.apollo import ApolloMiddleware
@@ -56,8 +58,7 @@ def create_app(config=None):
     # Enable CORS
     CORS(app, 
          resources={
-             r"/api/v1/graphql/*": {"origins": app.config['CORS_ALLOWED_ORIGINS']},
-             r"/graphql/*": {"origins": app.config['CORS_ALLOWED_ORIGINS']},
+             r"/api/graphql/*": {"origins": app.config['CORS_ALLOWED_ORIGINS']},
              r"/static/*": {"origins": "*"}
          },
          supports_credentials=app.config['CORS_ALLOW_CREDENTIALS'],
@@ -76,28 +77,15 @@ def create_app(config=None):
     graphql_middleware = GraphQLMiddleware(app, schema)
     app.wsgi_app = graphql_middleware(app.wsgi_app)
     
-    # Initialize versioned GraphQL API routes (/api/v1/graphql)
+    # Initialize GraphQL API routes (/api/graphql)
     init_graphql_routes(app)
-    
-    # Keep the legacy non-versioned GraphQL endpoint for backward compatibility
-    app.add_url_rule(
-        app.config['GRAPHQL_ENDPOINT'],
-        view_func=GraphQLView.as_view(
-            'graphql_legacy',
-            schema=schema,
-            graphiql=app.config['GRAPHQL_GRAPHIQL'],
-            batch=app.config['GRAPHQL_BATCH'],
-            middleware=[],
-            **apollo.get_apollo_config()
-        )
-    )
     
     # Add GraphQL Voyager route
     @app.route('/voyager')
     def voyager():
         return render_template('voyager.html')
     
-    logger.info("Flask application initialized with versioned GraphQL API, Apollo Studio, and rate limiting support")
+    logger.info("Flask application initialized with GraphQL API, Apollo Studio, and rate limiting support")
     return app
 
 async def prewarm_models():
