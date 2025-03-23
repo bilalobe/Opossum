@@ -110,3 +110,4 @@ venv.bak/
 # mkdocs exceptions
 !mkdocs.yml
 !docs/
+.vscode/settings.json
