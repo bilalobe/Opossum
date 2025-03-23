@@ -1,19 +1,18 @@
-"""GraphQL API initialization replacing the previous REST structure."""
+"""GraphQL API initialization."""
 from flask import Blueprint
 from flask_graphql import GraphQLView
 from app.api.schema import schema
 from app.api.middleware.apollo import ApolloMiddleware
 from app.api.middleware.graphql_request_processor import GraphQLRequestProcessor
 
-# Create a versioned blueprint for GraphQL API
-# This maintains the same versioning approach as the previous REST API
-api_v1 = Blueprint('api_v1', __name__, url_prefix='/api/v1')
+# Create a blueprint for GraphQL API
+api = Blueprint('api', __name__, url_prefix='/api')
 
-# Configure GraphQL endpoints with versioning
+# Configure GraphQL endpoints
 def init_graphql_routes(app):
-    """Initialize GraphQL routes with proper versioning."""
+    """Initialize GraphQL routes."""
     # Main GraphQL endpoint
-    api_v1.add_url_rule(
+    api.add_url_rule(
         '/graphql',
         view_func=GraphQLView.as_view(
             'graphql',
@@ -24,14 +23,14 @@ def init_graphql_routes(app):
     )
     
     # GraphQL Explorer endpoint
-    api_v1.add_url_rule(
+    api.add_url_rule(
         '/explorer',
         view_func=lambda: app.send_static_file('graphql_explorer.html'),
         methods=['GET']
     )
     
-    # Register the versioned blueprint with the app
-    app.register_blueprint(api_v1)
+    # Register the blueprint with the app
+    app.register_blueprint(api)
     
     # Apply middleware for request processing
     graphql_middleware = GraphQLRequestProcessor(app, schema)
