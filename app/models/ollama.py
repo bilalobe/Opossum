@@ -157,6 +157,34 @@ class OllamaBackend(ModelBackend):
             logger.error(f"Error generating embeddings with MiniLM: {str(e)}")
             return None
 
+    async def check_required_models(self) -> Dict[str, Any]:
+        """Check if required models are available and notify user if not."""
+        required_models = [
+            Config.OLLAMA_MODEL,     # gemma:1b
+            Config.LLAVA_MODEL,      # llava
+            Config.MINILM_MODEL      # all-minilm
+        ]
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(f"{Config.OLLAMA_BASE_URL}/api/tags", timeout=5)
+                response.raise_for_status()
+                
+                available_models = [model.get("name") for model in response.json().get("models", [])]
+                missing_models = [model for model in required_models if model not in available_models]
+                
+                if missing_models:
+                    logger.warning(f"Missing required Ollama models: {', '.join(missing_models)}")
+                    return {
+                        "missing_models": missing_models,
+                        "download_commands": [f"ollama pull {model}" for model in missing_models]
+                    }
+                return {"status": "all_models_available"}
+                
+        except Exception as e:
+            logger.error(f"Failed to check Ollama models: {str(e)}")
+            return {"status": "error", "message": str(e)}
+
     def get_info(self) -> Dict[str, Any]:
         """Get information about this model backend.
         
