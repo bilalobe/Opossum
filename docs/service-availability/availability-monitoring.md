@@ -42,7 +42,6 @@
 The monitoring system uses concurrent asynchronous checks to efficiently assess service availability:
 
 ```python
-# filepath: c:\Users\beb\PycharmProjects\Opossum\docs\service-availability\availability-monitoring.md
 class ServiceAvailability:
     def __init__(self):
         self.services_status = {
@@ -91,3 +90,6 @@ class ServiceAvailability:
 | Availability Summary | Daily     | Uptime percentages, outage periods, failover counts | Logs, email (planned)  |
 | Rate Limit Reports   | Daily     | API usage statistics, remaining quota               | Logs                   |
 | Service Health Check | On-demand | Current status of all services                      | API endpoint (planned) |
+
+!!! note
+    Regularly review the Availability Summary reports to identify trends and potential issues with service availability.

@@ -3,7 +3,7 @@
 > **Related Documentation:**
 > - [Technical: GraphQL API](../technical/graphql-api.md) - Implementation of rate limiting in GraphQL directives
 > - [API Reference: Rate Limits](../api/rate-limits.md) - Detailed API rate limit reference documentation
-> - [Infrastructure: Redis Integration](../infrastructure/redis-integration.md) - Redis-based rate limit tracking implementation
+> - [Technical: Redis Caching Architecture](../technical/redis-caching-architecture.md) - Redis-based rate limit tracking implementation
 
 ## Rate Limit Policies
 
@@ -35,7 +35,6 @@
 ## Throttling Implementation
 
 ```python
-# filepath: c:\Users\beb\PycharmProjects\Opossum\docs\service-availability\rate-limiting-throttling.md
 class RateLimitManager:
     def __init__(self):
         self.minute_usage = 0
@@ -83,6 +82,9 @@ class RateLimitManager:
 | Approaching Limits  | Batch requests                | Normal with slight delay               |
 | Normal Operation    | Direct API access             | Full functionality                     |
 | Extended Outage     | Local-only operation          | Reduced capabilities with notification |
+
+!!! tip
+    Client-side adaptation ensures a smooth user experience even when the server is experiencing rate limits or extended outages.
 
 ## Balance and Optimization Strategies
 

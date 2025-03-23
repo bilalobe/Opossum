@@ -19,6 +19,9 @@
 | Ollama → Transformers      | Connection failure or initialization error    | Immediate       | < 5s            |
 | Any → Client-side Fallback | All server services unavailable               | After 3 retries | < 10s           |
 
+!!! important
+    The failover strategy ensures that the Opossum Search application remains functional even when individual services experience outages.
+
 ## Recovery Procedures
 
 | Service      | Automatic Recovery                                              | Manual Recovery Steps                                                                                                                         |

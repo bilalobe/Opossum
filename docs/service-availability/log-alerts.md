@@ -90,6 +90,9 @@ class ServiceLogger:
 | Multiple Failovers   | >5 failovers in 24 hours                | Medium   | < 1 hour      |
 | All Services Down    | No available AI services                | Critical | Immediate     |
 
+!!! warning
+    Ensure that the alert triggers are configured correctly to promptly notify the operations team of any service disruptions or potential issues.
+
 ## Notification Channels
 
 | Channel          | Target Audience          | Alert Types             | Implementation                     |

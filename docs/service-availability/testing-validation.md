@@ -74,6 +74,9 @@ class TestServiceFailover:
 | Error Rate            | Percentage by service      | >1%              | Critical alert       |
 | Fallback Distribution | Pie chart of service usage | >20% non-primary | Weekly report        |
 
+!!! note
+    Pay close attention to the Service Uptime and Error Rate metrics in the Validation Dashboard. These are key indicators of overall service availability.
+
 ## Continuous Testing
 
 | Practice              | Implementation                                | Frequency        | Responsible Team |
