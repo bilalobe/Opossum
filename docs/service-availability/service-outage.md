@@ -1,6 +1,6 @@
-# 5. Error Handling and Recovery
+# Error Handling and Recovery
 
-## 5.1 Error Detection and Classification
+## Error Detection and Classification
 
 | Error Type                | Detection Method                      | Priority | Example                                 |
 |---------------------------|---------------------------------------|----------|-----------------------------------------|
@@ -11,7 +11,7 @@
 | Model Loading Failure     | Exception during model initialization | Medium   | Insufficient resources for Transformers |
 | Slow Response             | Response time exceeding threshold     | Low      | Degraded performance warning            |
 
-## 5.2 Failover Strategy
+## Failover Strategy
 
 | From Service               | To Service                                    | Trigger         | Transition Time |
 |----------------------------|-----------------------------------------------|-----------------|-----------------|
@@ -19,7 +19,7 @@
 | Ollama → Transformers      | Connection failure or initialization error    | Immediate       | < 5s            |
 | Any → Client-side Fallback | All server services unavailable               | After 3 retries | < 10s           |
 
-## 5.3 Recovery Procedures
+## Recovery Procedures
 
 | Service      | Automatic Recovery                                              | Manual Recovery Steps                                                                                                                         |
 |--------------|-----------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
@@ -27,7 +27,7 @@
 | Ollama       | Restart attempt after 60s of unavailability                     | 1. Check local service process<br>2. Restart Ollama service<br>3. Verify model availability<br>4. Check GPU utilization if performance issues |
 | Transformers | Model reloading attempt if initialization fails                 | 1. Verify model files exist<br>2. Check available RAM<br>3. Consider loading smaller model variant<br>4. Update model files if corrupted      |
 
-## 5.4 Error Communication
+## Error Communication
 
 | Audience   | Error Information                                           | Delivery Method                                                   |
 |------------|-------------------------------------------------------------|-------------------------------------------------------------------|
@@ -35,7 +35,7 @@
 | Developers | Detailed error including exception trace and service status | Application logs with ERROR level                                 |
 | Operations | Service status changes and recovery attempts                | Logs and monitoring alerts                                        |
 
-## 5.5 Resilience Mechanisms
+## Resilience Mechanisms
 
 | Mechanism              | Purpose                                                   | Implementation                            |
 |------------------------|-----------------------------------------------------------|-------------------------------------------|
@@ -45,7 +45,7 @@
 | Service Prioritization | Route requests to highest capability available service    | Service ranking with availability checks  |
 | Graceful Degradation   | Maintain core functionality with limited capabilities     | Feature flags based on available services |
 
-## 5.6 Recovery Monitoring
+## Recovery Monitoring
 
 | Recovery Metric            | Measurement                              | Threshold          | Action                          |
 |----------------------------|------------------------------------------|--------------------|---------------------------------|

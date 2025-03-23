@@ -1,6 +1,6 @@
-# 7. Logging and Alerts
+# Logging and Alerts
 
-## 7.1 Logging Strategy
+## Logging Strategy
 
 | Log Category        | Purpose                                | Implementation                      | Retention |
 |---------------------|----------------------------------------|-------------------------------------|-----------|
@@ -10,7 +10,7 @@
 | Recovery Actions    | Document automatic recovery attempts   | Action logs with outcomes           | 14 days   |
 | Performance Metrics | Track response times and latency       | Time-series metrics                 | 180 days  |
 
-## 7.2 Log Levels
+## Log Levels
 
 | Level    | Usage                             | Example                                               |
 |----------|-----------------------------------|-------------------------------------------------------|
@@ -20,7 +20,7 @@
 | ERROR    | Runtime errors, failed operations | "Connection to Ollama failed: Connection refused"     |
 | CRITICAL | System-wide failures              | "All services unavailable, switching to offline mode" |
 
-## 7.3 Logging Implementation
+## Logging Implementation
 
 ```python
 import logging
@@ -80,7 +80,7 @@ class ServiceLogger:
                    extra={"data": json.dumps(log_data)})
 ```
 
-## 7.4 Alert Triggers
+## Alert Triggers
 
 | Trigger              | Condition                               | Severity | Response Time |
 |----------------------|-----------------------------------------|----------|---------------|
@@ -90,7 +90,7 @@ class ServiceLogger:
 | Multiple Failovers   | >5 failovers in 24 hours                | Medium   | < 1 hour      |
 | All Services Down    | No available AI services                | Critical | Immediate     |
 
-## 7.5 Notification Channels
+## Notification Channels
 
 | Channel          | Target Audience          | Alert Types             | Implementation                     |
 |------------------|--------------------------|-------------------------|------------------------------------|
@@ -100,7 +100,7 @@ class ServiceLogger:
 | Status Dashboard | All stakeholders         | Service status, outages | Real-time web dashboard            |
 | Slack Channel    | Operations & Development | Medium+ severity        | Webhook integration                |
 
-## 7.6 Alert Templates
+## Alert Templates
 
 | Alert Type          | Template                                                                                      | Channel      |
 |---------------------|-----------------------------------------------------------------------------------------------|--------------|
@@ -109,7 +109,7 @@ class ServiceLogger:
 | Recovery Success    | "[INFO] {service_name} successfully recovered after {downtime} minutes of unavailability."    | Logs         |
 | Client Notification | "Using alternative AI service due to temporary unavailability. Some features may be limited." | UI           |
 
-## 7.7 Log Analysis
+## Log Analysis
 
 | Analysis Type           | Purpose                        | Tools                | Frequency |
 |-------------------------|--------------------------------|----------------------|-----------|

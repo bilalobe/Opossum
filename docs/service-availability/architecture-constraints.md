@@ -1,6 +1,6 @@
-# 3. Architecture Constraints
+# Architecture Constraints
 
-## 3.1 External Service Dependencies
+## External Service Dependencies
 
 | Service               | Dependency Type                  | Constraint                                       | Impact                                             |
 |-----------------------|----------------------------------|--------------------------------------------------|----------------------------------------------------|
@@ -8,7 +8,7 @@
 | Google Cloud Platform | Infrastructure for Gemini        | Subject to Google's maintenance windows and SLAs | May cause temporary Gemini unavailability          |
 | OpenAI API            | Optional fallback service        | Rate-limited based on subscription tier          | Provides additional redundancy if configured       |
 
-## 3.2 Local Service Dependencies
+## Local Service Dependencies
 
 | Service        | Constraint                                 | Impact                                              |
 |----------------|--------------------------------------------|-----------------------------------------------------|
@@ -16,7 +16,7 @@
 | Transformers   | Requires sufficient RAM for model loading  | Lower capability models used when RAM is limited    |
 | Python Runtime | Version 3.8+ required                      | Application will not start on older Python versions |
 
-## 3.3 Infrastructure Requirements
+## Infrastructure Requirements
 
 | Component | Requirement                                    | Rationale                                                |
 |-----------|------------------------------------------------|----------------------------------------------------------|
@@ -26,7 +26,7 @@
 | Network   | Reliable internet connection for external APIs | Intermittent connectivity will affect Gemini service     |
 | Docker    | Optional but recommended for Ollama isolation  | Simplifies deployment and management of Ollama service   |
 
-## 3.4 Operating Environment Constraints
+## Operating Environment Constraints
 
 | Constraint             | Description                                           | Mitigation                                                |
 |------------------------|-------------------------------------------------------|-----------------------------------------------------------|
@@ -35,7 +35,7 @@
 | Offline Operation      | Must function with degraded capabilities when offline | Ensure Transformers models are pre-downloaded             |
 | Cross-Platform Support | Must run on Windows, macOS, and Linux                 | Abstract platform-specific code and test on all platforms |
 
-## 3.5 Technical Debt and Limitations
+## Technical Debt and Limitations
 
 | Limitation                | Description                                              | Future Improvement                                            |
 |---------------------------|----------------------------------------------------------|---------------------------------------------------------------|

@@ -1,6 +1,6 @@
-# 4. Availability Monitoring
+# Availability Monitoring
 
-## 4.1 Monitoring Strategy
+## Monitoring Strategy
 
 | Component            | Strategy           | Implementation                             |
 |----------------------|--------------------|--------------------------------------------|
@@ -9,7 +9,7 @@
 | Status Changes       | Event-based        | Status change detection and logging        |
 | Failure Detection    | Exception handling | Request timeouts and error catching        |
 
-## 4.2 Check Frequency and Scheduling
+## Check Frequency and Scheduling
 
 | Service      | Check Frequency        | Caching Duration | Trigger Mechanism      |
 |--------------|------------------------|------------------|------------------------|
@@ -18,7 +18,7 @@
 | Transformers | Every 30 seconds (max) | 30 seconds       | On-demand with caching |
 | All Services | On application startup | N/A              | Initialization check   |
 
-## 4.3 Metrics Collection
+## Metrics Collection
 
 | Metric                  | Collection Method         | Storage              | Purpose                   |
 |-------------------------|---------------------------|----------------------|---------------------------|
@@ -28,7 +28,7 @@
 | Gemini Per-Minute Usage | Counter with minute reset | In-memory counter    | Rate limit compliance     |
 | Service Transitions     | Event logging             | Application logs     | Diagnostics and reporting |
 
-## 4.4 Monitoring Tools
+## Monitoring Tools
 
 | Tool               | Purpose                                       | Integration                    |
 |--------------------|-----------------------------------------------|--------------------------------|
@@ -37,11 +37,12 @@
 | Exception Tracking | Capture and report service check failures     | Try-except blocks with logging |
 | Status Dashboard   | Visual representation of service availability | Admin interface (planned)      |
 
-## 4.5 Implementation Details
+## Implementation Details
 
 The monitoring system uses concurrent asynchronous checks to efficiently assess service availability:
 
 ```python
+# filepath: c:\Users\beb\PycharmProjects\Opossum\docs\service-availability\availability-monitoring.md
 class ServiceAvailability:
     def __init__(self):
         self.services_status = {
@@ -82,7 +83,7 @@ class ServiceAvailability:
     # Similar methods for check_ollama_availability and check_transformers_availability
 ```
 
-## 4.6 Availability Reporting
+## Availability Reporting
 
 | Report               | Frequency | Contents                                            | Distribution           |
 |----------------------|-----------|-----------------------------------------------------|------------------------|

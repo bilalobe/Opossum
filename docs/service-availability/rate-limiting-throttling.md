@@ -1,6 +1,11 @@
-# 6. Rate Limiting and Throttling
+# Rate Limiting and Throttling
 
-## 6.1 Rate Limit Policies
+> **Related Documentation:**
+> - [Technical: GraphQL API](../technical/graphql-api.md) - Implementation of rate limiting in GraphQL directives
+> - [API Reference: Rate Limits](../api/rate-limits.md) - Detailed API rate limit reference documentation
+> - [Infrastructure: Redis Integration](../infrastructure/redis-integration.md) - Redis-based rate limit tracking implementation
+
+## Rate Limit Policies
 
 | Service      | Rate Limit Type | Quota                | Reset Period | Priority Handling                        |
 |--------------|-----------------|----------------------|--------------|------------------------------------------|
@@ -9,7 +14,7 @@
 | Ollama       | Local Resource  | CPU/GPU dependent    | N/A          | Queue-based with timeout                 |
 | Transformers | Local Resource  | Memory/CPU dependent | N/A          | Simplified models for high load          |
 
-## 6.2 Detection Mechanisms
+## Detection Mechanisms
 
 | Limit Type          | Detection Method  | Response Code         | Handling Strategy                         |
 |---------------------|-------------------|-----------------------|-------------------------------------------|
@@ -18,7 +23,7 @@
 | Quota Exceeded      | HTTP 403 response | 403 Forbidden         | Temporary service downgrade               |
 | Resource Exhaustion | Exception/timeout | Various               | Scale down model complexity               |
 
-## 6.3 Request Management
+## Request Management
 
 | Approach               | Implementation                       | Benefit                                |
 |------------------------|--------------------------------------|----------------------------------------|
@@ -27,9 +32,10 @@
 | Request Prioritization | User interaction > Background tasks  | Maintains responsive UX                |
 | Adaptive TTL           | Dynamic cache lifetime based on load | Reduces API calls during peak          |
 
-## 6.4 Throttling Implementation
+## Throttling Implementation
 
 ```python
+# filepath: c:\Users\beb\PycharmProjects\Opossum\docs\service-availability\rate-limiting-throttling.md
 class RateLimitManager:
     def __init__(self):
         self.minute_usage = 0
@@ -69,7 +75,7 @@ class RateLimitManager:
             return await self.handle_rate_limit(*args)
 ```
 
-## 6.5 Client-Side Adaptation
+## Client-Side Adaptation
 
 | Condition           | Client Behavior               | User Experience                        |
 |---------------------|-------------------------------|----------------------------------------|
@@ -78,7 +84,7 @@ class RateLimitManager:
 | Normal Operation    | Direct API access             | Full functionality                     |
 | Extended Outage     | Local-only operation          | Reduced capabilities with notification |
 
-## 6.6 Balance and Optimization Strategies
+## Balance and Optimization Strategies
 
 | Strategy                    | Implementation                     | Effect                                            |
 |-----------------------------|------------------------------------|---------------------------------------------------|
@@ -87,7 +93,7 @@ class RateLimitManager:
 | Adaptive Backoff            | Exponential delay with jitter      | Graceful recovery during service degradation      |
 | Quota Forecasting           | Predictive usage modeling          | Proactive service switching before limits reached |
 
-## 6.7 Monitoring and Alerts
+## Monitoring and Alerts
 
 | Metric          | Threshold     | Alert Type | Recipient               |
 |-----------------|---------------|------------|-------------------------|

@@ -1,6 +1,6 @@
-# 2. Quality Requirements
+# Quality Requirements
 
-## 2.1 Availability Requirements
+## Availability Requirements
 
 | Service                    | Uptime Target | Measurement Period | Critical Hours |
 |----------------------------|---------------|--------------------|----------------|
@@ -9,7 +9,7 @@
 | Ollama Service             | 95%           | Weekly             | Business hours |
 | Transformers Fallback      | 99.9%         | Monthly            | 24/7           |
 
-## 2.2 Performance Requirements
+## Performance Requirements
 
 | Metric                        | Target  | Description                                            |
 |-------------------------------|---------|--------------------------------------------------------|
@@ -18,7 +18,7 @@
 | Failover Completion Time      | < 5s    | Time to complete transition to alternative service     |
 | Service Status Cache Validity | 30s     | Maximum age of cached service status information       |
 
-## 2.3 Recovery Time Objectives
+## Recovery Time Objectives
 
 | Scenario                 | Recovery Time Objective (RTO)                                   | Recovery Point Objective (RPO)         |
 |--------------------------|-----------------------------------------------------------------|----------------------------------------|
@@ -26,7 +26,7 @@
 | Ollama Service Failure   | < 1 minute for auto-restart, immediate failover to Transformers | No data loss                           |
 | All Remote Services Down | < 10 seconds to activate offline mode                           | Potential loss of latest model updates |
 
-## 2.4 Logging and Monitoring Requirements
+## Logging and Monitoring Requirements
 
 | Requirement           | Description                                                         |
 |-----------------------|---------------------------------------------------------------------|
@@ -35,7 +35,7 @@
 | Critical Alerts       | Service outages must trigger alerts within 30 seconds               |
 | Availability Reports  | System must generate daily availability reports                     |
 
-## 2.5 Quality Verification
+## Quality Verification
 
 | Verification Method      | Frequency             | Responsibility   |
 |--------------------------|-----------------------|------------------|

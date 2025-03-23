@@ -1,12 +1,12 @@
-# 1. Context and Scope
+# Context and Scope
 
-## 1.1 Overview
+## Overview
 
 This document describes the service availability monitoring system implemented for the Opossum Search application. The
 system monitors the availability of multiple AI model backends, manages rate limits, and provides automatic failover to
 ensure continuous operation.
 
-## 1.2 Services in Scope
+## Services in Scope
 
 The following services are monitored for availability:
 
@@ -16,7 +16,7 @@ The following services are monitored for availability:
 | Ollama       | Local service | Self-hosted AI models with REST API             | Connection health checking                   |
 | Transformers | Local library | Fallback for offline operation                  | Always assumed available (local)             |
 
-## 1.3 Critical Paths
+## Critical Paths
 
 The application depends on at least one service being available to respond to user queries. The dependency chain is:
 
@@ -24,7 +24,7 @@ The application depends on at least one service being available to respond to us
 2. **Secondary Path**: Ollama service (when available and suitable for query type)
 3. **Fallback Path**: Transformers models (always available, used when other services fail)
 
-## 1.4 System Boundaries
+## System Boundaries
 
 The availability system:
 
@@ -33,7 +33,7 @@ The availability system:
 - **Logs**: Service status changes and availability events
 - **Does Not**: Handle network configuration or service deployment
 
-## 1.5 Stakeholders
+## Stakeholders
 
 | Stakeholder     | Interest in Service Availability                         |
 |-----------------|----------------------------------------------------------|
@@ -41,13 +41,13 @@ The availability system:
 | Operations Team | Monitoring service health and diagnostics                |
 | Developers      | Understanding fallback behavior and service dependencies |
 
-## 1.6 External Interfaces
+## External Interfaces
 
 - **Gemini API**: Google Cloud API with rate limits and authentication
 - **Ollama REST API**: Local service providing model inference
 - **Transformers Library**: Local Python library for model inference
 
-## 1.7 Technical Context
+## Technical Context
 
 The service availability system is implemented as a component in the model backend selection process. It:
 
