@@ -73,6 +73,19 @@ def service_status_template(data: Dict[str, Any]) -> str:
         '''
         y += 80
 
+    # Easter egg: If all services are fully operational, add a hidden opossum silhouette
+    all_online = all(info.get('status') == 'online' for info in services.values())
+    if all_online:
+        svg += '''
+        <!-- Easter egg: Hidden opossum silhouette - only visible when all services are online -->
+        <path d="M650,150 C670,130 680,135 700,140 C720,145 740,130 760,140 
+                 C780,150 790,170 770,190 C760,200 740,190 720,195 
+                 C700,200 680,200 670,190 C660,180 640,170 650,150 Z" 
+              fill="none" stroke="#88888812" stroke-width="1" opacity="0.15">
+            <title>You found the hidden opossum! All services are online.</title>
+        </path>
+        '''
+
     svg += '</svg>'
     return svg
 
