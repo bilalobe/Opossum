@@ -9,7 +9,7 @@ site_author: bebo
 # Theme configuration
 theme:
   name: readthedocs
-  # favicon: assets/images/favicon.png
+  favicon: assets/images/favicon.ico
   features:
     - navigation.tabs
     - navigation.sections
@@ -47,13 +47,12 @@ markdown_extensions:
       custom_fences:
         - name: mermaid
           class: mermaid
-          format: !!python/name:pymdownx.superfences.fence_code_format
+          format: !!python/name:mermaid2.fence_mermaid_custom
   - pymdownx.inlinehilite
   - pymdownx.tabbed:
       alternate_style: true
   - pymdownx.tasklist:
       custom_checkbox: true
-  - pymdownx.superfences
   - pymdownx.highlight
   - pymdownx.details
   - toc:
@@ -62,6 +61,22 @@ markdown_extensions:
 # Navigation structure
 nav:
   - Home: index.md
+  - Technical & Development:
+    - Architecture:
+      - System Architecture Overview: technical/system-architecture-overview.md
+    - Core Components:
+      - Redis Caching Architecture: technical/redis-caching-architecture.md
+      - Hybrid Model Selection: technical/hybrid-model-selection.md
+      - Image Processing Pipeline: technical/image-processing-pipeline.md
+      - GraphQL API: technical/graphql-api.md
+      - OpenTelemetry Integration: technical/opentelemetry-integration.md
+      - SVG Markup: technical/svg-markup.md
+      - DevOps Guide: technical/devops-guide.md
+    - Development Workflow:
+      - Getting Started: technical/getting-started.md
+    - Operations:
+      - Security Model: technical/security-model.md
+      - Error Handling & Resilience: technical/error-handling-resilience.md
   - Service Availability:
     - Context and Scope: service-availability/context-and-scope.md
     - Quality Requirements: service-availability/quality-requirements.md
@@ -70,18 +85,13 @@ nav:
     - Error Handling: service-availability/service-outage.md
     - Rate Limiting: service-availability/rate-limiting-throttling.md
     - Logging and Alerts: service-availability/log-alerts.md
-    - Fallback Mechanisms: service-availability/fallback-mechanisms.md
-    - Hybrid Model: service-availability/hybrid-model.md
     - Testing and Validation: service-availability/testing-validation.md
-    - Diagrams: service-availability/processing-diagrams.md
   - Conversation Management:
     - Topic Detection: conversation/topic-detection.md
     - Conversation Flow: conversation/conversation-flow.md
     - Response Generation: conversation/response-generation.md
     - NLP Components: conversation/nlp-components.md
     - Markov Chain Text: conversation/markov-generation.md
-  - GraphQL API:
-    - Getting Started: graphql/getting-started.md
   - Image Processing:
     - Overview: image-processing/overview.md
     - Effects and Filters: image-processing/effects.md
@@ -94,34 +104,28 @@ nav:
     - Capability Matrix: model-integration/capability-matrix.md
     - Provider Integration: model-integration/providers.md
     - Model Configuration: model-integration/configuration.md
-  - Infrastructure:
-    - Caching System: infrastructure/caching.md
-    - Performance Monitoring: infrastructure/monitoring.md
-    - Configuration Management: infrastructure/configuration.md
-    - Error Handling: infrastructure/error-handling.md
-    - Logging Strategy: infrastructure/logging.md
   - API Reference:
+    - Getting Started: api/getting-started.md
     - Routes: api/routes.md
+    - OAuth Configuration: api/oauth-configuration.md
     - Request/Response: api/request-response.md
     - Error Codes: api/error-codes.md
     - Rate Limits: api/rate-limits.md
     - Webhook Integration: api/webhooks.md
-  - Development:
-    - Getting Started: development/getting-started.md
-    - Architecture Overview: development/architecture.md
-    - Contributing: development/contributing.md
-    - Testing Guide: development/testing.md
-    - Deployment: development/deployment.md
+    - Health Endpoints: api/health-endpoints.md
+    - Compliance: api/compliance.md
   - Features:
     - Opossum National Day: features/national-day.md
     - Easter Eggs: features/easter-eggs.md
     - Special Events: features/special-events.md
     - Background Stories: features/background-stories.md
+    - Service Visualizations: features/service-vizualizations.md
   - About:
     - Project History: about/history.md
     - Team: about/team.md
     - Roadmap: about/roadmap.md
-    - License: about/license.md
+  - Infrastructure:
+    - Optimization Strategies: infrastructure/optimization-strategies.md
 
 # Plugins
 plugins:
