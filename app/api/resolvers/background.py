@@ -39,6 +39,9 @@ except Exception as e:
 # Opossum-themed emojis
 OPOSSUM_EMOJIS = ["🐭", "🐀", "🐹", "🌙", "🌳", "🍃", "🌿", "🍂", "🌲", "🐾", "💤"]
 
+# Easter egg emojis (all bunnies for easter celebration)
+EASTER_EGG_EMOJIS = ["🐰", "🐰", "🐰", "🐰", "🐰"]
+
 @apply_cost(value=2)
 @rate_limit(limit=60, duration=60)  # 60 requests per minute
 async def resolve_generate_gibberish(root, info, num_lines=25):
@@ -71,12 +74,29 @@ async def resolve_generate_gibberish(root, info, num_lines=25):
         # If we couldn't generate enough lines, fill with fallback text
         while len(lines) < num_lines:
             lines.append("Opossums are fascinating creatures.")
+        
+        # Easter egg: rare special facts (1% chance)
+        easter_egg_triggered = False
+        if random.random() < 0.01:
+            easter_egg_triggered = True
+            secret_facts = [
+                "EASTER EGG: Opossums have existed for over 70 million years, surviving the extinction that killed the dinosaurs!",
+                "EASTER EGG: The word 'opossum' comes from the Algonquian language, meaning 'white dog-like animal'.",
+                "EASTER EGG: An opossum's body temperature is too low to host the rabies virus effectively!",
+                "EASTER EGG: Opossums can eat up to 5,000 ticks per season, helping reduce Lyme disease!",
+                "EASTER EGG: You found a secret opossum fact! Baby opossums make a sneezing sound to signal their mother.",
+                "EASTER EGG: Opossums have 13 nipples arranged in a circle of 12 with one in the center."
+            ]
+            lines.insert(random.randint(0, len(lines)), random.choice(secret_facts))
             
-        # Select random emojis
-        selected_emojis = random.sample(
-            OPOSSUM_EMOJIS, 
-            min(5, len(OPOSSUM_EMOJIS))
-        )
+        # Select emojis based on whether easter egg was triggered
+        if easter_egg_triggered:
+            selected_emojis = EASTER_EGG_EMOJIS  # All bunny emojis on easter egg
+        else:
+            selected_emojis = random.sample(
+                OPOSSUM_EMOJIS, 
+                min(5, len(OPOSSUM_EMOJIS))
+            )
         
         # Build result
         result = {
