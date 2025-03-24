@@ -6,6 +6,7 @@ scikit-learn
 numpy~=2.2.4
 transformers
 requests~=2.32.3
+dotenv~=0.9.9
 
 # Optional dependencies based on backend choice
 google-generativeai
