@@ -1,17 +1,13 @@
 """Custom GraphQL directives for schema extensions."""
-import inspect
 import logging
 from functools import wraps
-from typing import Any, Callable, Dict, Optional, Union
+from typing import Callable, Optional
 
-import graphene
 from graphql import (
-    GraphQLArgument, 
-    GraphQLDirective, 
+    GraphQLArgument,
+    GraphQLDirective,
     DirectiveLocation,
-    GraphQLField, 
-    GraphQLString, 
-    GraphQLBoolean, 
+    GraphQLString,
     GraphQLInt
 )
 
@@ -107,20 +103,26 @@ all_directives = [
     auth_directive
 ]
 
+
 # Directive decorator implementations
 def rate_limit(limit: int, duration: int) -> Callable:
     """Decorator for rate limiting a resolver."""
+
     def decorator(resolver_func: Callable) -> Callable:
         @wraps(resolver_func)
         def wrapper(*args, **kwargs):
             # Rate limiting logic would go here
             logger.debug(f"Rate limit applied: {limit}/{duration}s")
             return resolver_func(*args, **kwargs)
+
         return wrapper
+
     return decorator
+
 
 def auth_required(requires: Optional[str] = None) -> Callable:
     """Decorator for requiring authentication on a resolver."""
+
     def decorator(resolver_func: Callable) -> Callable:
         @wraps(resolver_func)
         def wrapper(root, info, *args, **kwargs):
@@ -128,11 +130,15 @@ def auth_required(requires: Optional[str] = None) -> Callable:
             # For now, just log the requirement
             logger.debug(f"Auth required: {requires}")
             return resolver_func(root, info, *args, **kwargs)
+
         return wrapper
+
     return decorator
+
 
 def apply_cost(value: int, multipliers: Optional[str] = None) -> Callable:
     """Decorator for adding cost tracking to a resolver."""
+
     def decorator(resolver_func: Callable) -> Callable:
         @wraps(resolver_func)
         def wrapper(root, info, *args, **kwargs):
@@ -145,19 +151,22 @@ def apply_cost(value: int, multipliers: Optional[str] = None) -> Callable:
                         arg_val = kwargs.get(arg_name)
                         if isinstance(arg_val, (int, float)):
                             effective_cost *= arg_val
-            
+
             # Store in context for tracking
             if not hasattr(info.context, 'query_cost'):
                 info.context.query_cost = 0
             info.context.query_cost += effective_cost
-            
+
             return resolver_func(root, info, *args, **kwargs)
+
         return wrapper
+
     return decorator
 
+
 __all__ = [
-    'all_directives', 
-    'rate_limit', 
+    'all_directives',
+    'rate_limit',
     'auth_required',
     'apply_cost'
 ]

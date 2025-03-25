@@ -1,9 +1,8 @@
 """Background text generation resolvers."""
 import logging
 import random
-import emoji
+
 import markovify
-from typing import List, Dict, Any, Optional
 
 from app.api.directives import apply_cost, rate_limit
 from app.utils.infrastructure.cache_factory import cache
@@ -42,6 +41,7 @@ OPOSSUM_EMOJIS = ["🐭", "🐀", "🐹", "🌙", "🌳", "🍃", "🌿", "🍂"
 # Easter egg emojis (all bunnies for easter celebration)
 EASTER_EGG_EMOJIS = ["🐰", "🐰", "🐰", "🐰", "🐰"]
 
+
 @apply_cost(value=2)
 @rate_limit(limit=60, duration=60)  # 60 requests per minute
 async def resolve_generate_gibberish(root, info, num_lines=25):
@@ -53,14 +53,14 @@ async def resolve_generate_gibberish(root, info, num_lines=25):
         if cached_result:
             logger.debug("Using cached gibberish text")
             return cached_result
-            
+
         # Generate text if no cache hit
         if not text_model:
             return {
                 "text": "Unable to generate text at this time.",
                 "emojis": ["❌"]
             }
-        
+
         # Generate lines of text
         lines = []
         for _ in range(min(num_lines, 100)):  # Cap at 100 lines
@@ -70,11 +70,11 @@ async def resolve_generate_gibberish(root, info, num_lines=25):
                     lines.append(line)
             except Exception:
                 continue
-                
+
         # If we couldn't generate enough lines, fill with fallback text
         while len(lines) < num_lines:
             lines.append("Opossums are fascinating creatures.")
-        
+
         # Easter egg: rare special facts (1% chance)
         easter_egg_triggered = False
         if random.random() < 0.01:
@@ -88,25 +88,25 @@ async def resolve_generate_gibberish(root, info, num_lines=25):
                 "EASTER EGG: Opossums have 13 nipples arranged in a circle of 12 with one in the center."
             ]
             lines.insert(random.randint(0, len(lines)), random.choice(secret_facts))
-            
+
         # Select emojis based on whether easter egg was triggered
         if easter_egg_triggered:
             selected_emojis = EASTER_EGG_EMOJIS  # All bunny emojis on easter egg
         else:
             selected_emojis = random.sample(
-                OPOSSUM_EMOJIS, 
+                OPOSSUM_EMOJIS,
                 min(5, len(OPOSSUM_EMOJIS))
             )
-        
+
         # Build result
         result = {
             "text": "\n".join(lines),
             "emojis": selected_emojis
         }
-        
+
         # Cache for 5 minutes
         cache.set(cache_key, result, expire=300)
-        
+
         return result
     except Exception as e:
         logger.error(f"Error generating gibberish: {e}")

@@ -1,9 +1,9 @@
 """Context-aware response generation with sentiment and topic awareness."""
 
 import logging
-from typing import Dict, Any
-from datetime import datetime
 import random
+from datetime import datetime
+from typing import Dict, Any
 
 from app.conversation.sentiment_analyzer import SentimentTracker
 from app.conversation.state_manager import ConversationState
@@ -59,7 +59,7 @@ class ResponseGenerator:
         if current_date.month == 10 and current_date.day == 18:
             if random.random() < 0.3:  # 30% chance to trigger
                 response_text = "🎉 Happy National Opossum Day! 🎉\n\nDid you know? Today (October 18th) is the official day to celebrate these amazing marsupials! They're North America's only native marsupial and have been around for over 70 million years."
-                
+
                 conversation_state.add_message(
                     role="user",
                     content=user_message,
@@ -70,7 +70,7 @@ class ResponseGenerator:
                     content=response_text,
                     metadata={"special": "opossum_day"}
                 )
-                
+
                 return {
                     "response": response_text,
                     "next_stage": conversation_state.current_stage,
@@ -78,7 +78,7 @@ class ResponseGenerator:
                     "needs_reengagement": False,
                     "special": "opossum_day"
                 }
-                
+
         # Determine next conversation stage
         next_stage = self.topic_detector.determine_next_stage(
             user_message,

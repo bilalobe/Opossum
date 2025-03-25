@@ -1,10 +1,9 @@
 """Cache infrastructure for API responses and data."""
 
 import logging
-from datetime import datetime
 from typing import Any, Optional
+
 from cachetools import TTLCache, LRUCache
-from flask import current_app
 
 logger = logging.getLogger(__name__)
 
@@ -14,11 +13,13 @@ _api_cache = TTLCache(maxsize=1000, ttl=300)  # 5 minute TTL by default
 # Cache for computed data that doesn't need to expire
 _data_cache = LRUCache(maxsize=500)
 
+
 def get_from_cache(key: str) -> Optional[Any]:
     """Get a value from the appropriate cache."""
     if key.startswith('api_'):
         return _api_cache.get(key)
     return _data_cache.get(key)
+
 
 def add_to_cache(key: str, value: Any, ttl: Optional[int] = None) -> None:
     """
@@ -40,10 +41,11 @@ def add_to_cache(key: str, value: Any, ttl: Optional[int] = None) -> None:
                 _api_cache[key] = value
         else:
             _data_cache[key] = value
-            
+
         logger.debug(f"Cached {key} {'with TTL' if ttl else ''}")
     except Exception as e:
         logger.warning(f"Failed to cache {key}: {e}")
+
 
 def invalidate_cache(key_prefix: str = None) -> None:
     """
@@ -66,6 +68,7 @@ def invalidate_cache(key_prefix: str = None) -> None:
     except Exception as e:
         logger.error(f"Failed to invalidate cache: {e}")
 
+
 def get_cache_stats() -> dict:
     """Get cache statistics."""
     return {
@@ -82,11 +85,12 @@ def get_cache_stats() -> dict:
         }
     }
 
+
 def configure_cache(api_maxsize: int = 1000, api_ttl: int = 300,
-                   data_maxsize: int = 500) -> None:
+                    data_maxsize: int = 500) -> None:
     """Configure cache parameters."""
     global _api_cache, _data_cache
-    
+
     _api_cache = TTLCache(maxsize=api_maxsize, ttl=api_ttl)
     _data_cache = LRUCache(maxsize=data_maxsize)
     logger.info(f"Configured caches: API({api_maxsize}, {api_ttl}s), Data({data_maxsize})")

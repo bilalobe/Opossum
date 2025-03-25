@@ -1,12 +1,12 @@
 """Conversation resolvers with enhanced functionality and error handling."""
 import logging
-from typing import Dict, Any, Optional
 
-from app.conversation import conversation_factory
 from app.api.directives import apply_cost, rate_limit
-from app.api.types import Error, Timestamp
+from app.api.types import Timestamp
+from app.conversation import conversation_factory
 
 logger = logging.getLogger(__name__)
+
 
 @apply_cost(value=10)
 @rate_limit(limit=30, duration=60)  # 30 requests per minute
@@ -18,16 +18,16 @@ async def resolve_chat(root, info, input):
         session_id = input.get('session_id', '')
         has_image = input.get('has_image', False)
         image_data = input.get('image_data', '') if has_image else None
-        
+
         # Get conversation manager for this session
         conversation = conversation_factory.get_conversation(session_id)
-        
+
         # Process the message
         result = await conversation.process_message(
             message=message,
             image_data=image_data if has_image else None
         )
-        
+
         # Return structured response
         return {
             "response": result.get("response", ""),
@@ -45,13 +45,14 @@ async def resolve_chat(root, info, input):
             "error": str(e)
         }
 
+
 @apply_cost(value=2)
 async def resolve_submit_feedback(root, info, message, rating):
     """Record user feedback about a conversation."""
     try:
         # This would typically connect to a feedback storage system
         logger.info(f"Feedback received - Rating: {rating}, Message: {message}")
-        
+
         # For now, just log the feedback
         feedback_data = {
             "message": message,
@@ -60,14 +61,15 @@ async def resolve_submit_feedback(root, info, message, rating):
             "user_agent": getattr(info.context, 'user_agent', 'unknown'),
             "ip_address": getattr(info.context, 'ip_address', 'unknown')
         }
-        
+
         # In a real implementation, store this in a database
         logger.info(f"Feedback data: {feedback_data}")
-        
+
         return True
     except Exception as e:
         logger.error(f"Error submitting feedback: {e}")
         return False
+
 
 @apply_cost(value=1)
 async def resolve_end_conversation(root, info, session_id):

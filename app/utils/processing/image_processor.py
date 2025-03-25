@@ -4,7 +4,6 @@ from io import BytesIO
 from time import time
 from typing import Tuple, Optional, Dict, Any, Callable
 
-from wand.color import Color
 from wand.image import Image
 
 from app.utils.infrastructure.cache import get_from_cache, add_to_cache

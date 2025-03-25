@@ -1,7 +1,9 @@
 """Service availability schema types and operations."""
 import graphene
+
 from app.api.resolvers.services import resolve_service_status, resolve_force_service_check, resolve_model_info
 from app.api.types import Timestamp, ModelInfo
+
 
 class ServiceStatus(graphene.ObjectType):
     """Status information for a backend service in the system."""
@@ -12,12 +14,14 @@ class ServiceStatus(graphene.ObjectType):
     availability = graphene.Float(description="Service availability percentage over the last 24 hours")
     last_checked = graphene.Field(Timestamp, description="When the service was last checked")
 
+
 class ServiceStatusResponse(graphene.ObjectType):
     """Combined service status information with visualization."""
     service_data = graphene.JSONString(description="JSON object containing status data for all services")
     svg_content = graphene.String(description="SVG visualization of service status")
     last_updated = graphene.Field(Timestamp, description="When the status was last updated")
     error = graphene.Field(graphene.String, description="Error message if something went wrong")
+
 
 # Service-related Query fields
 services_query_fields = {
@@ -26,7 +30,7 @@ services_query_fields = {
         description="Get current status of all backend services with visualization",
         resolver=resolve_service_status
     ),
-    
+
     'model_info': graphene.Field(
         ModelInfo,
         model_name=graphene.String(required=True),

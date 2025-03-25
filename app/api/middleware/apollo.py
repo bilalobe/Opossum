@@ -1,41 +1,44 @@
 """Apollo Studio compatible monitoring middleware using OpenTelemetry."""
 import logging
-from flask import request, jsonify
-from opentelemetry import trace
-from opentelemetry.instrumentation.flask import FlaskInstrumentor
+
 from ddtrace import patch, tracer
+from flask import jsonify
+from opentelemetry.instrumentation.flask import FlaskInstrumentor
 
 logger = logging.getLogger(__name__)
 
+
 class ApolloMiddleware:
     """Middleware for Apollo-compatible monitoring."""
-    
+
     def __init__(self, app, schema):
         self.app = app
         self.schema = schema
         self.setup_monitoring()
         self.setup_routes()
-        
+
     def setup_monitoring(self):
         """Set up OpenTelemetry monitoring."""
         # Initialize Flask instrumentation
         FlaskInstrumentor().instrument_app(self.app)
-        
+
         # Initialize Datadog APM for Apollo compatibility
         patch(graphql=True)
-        
+
         @tracer.wrap(service="opossum-graphql")
         def wrap_graphql_execute(fn):
             def wrapped(*args, **kwargs):
                 with tracer.trace("graphql.execute"):
                     return fn(*args, **kwargs)
+
             return wrapped
-        
+
         # Wrap GraphQL execution
         self.schema.execute = wrap_graphql_execute(self.schema.execute)
-        
+
     def setup_routes(self):
         """Set up monitoring endpoints."""
+
         @self.app.route('/.well-known/apollo/server-health')
         def health_check():
             """Apollo health check endpoint."""

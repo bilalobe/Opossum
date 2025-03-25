@@ -1,7 +1,8 @@
 import logging
 import os
 import platform
-from typing import List, Dict, Any, Optional
+from typing import List, Dict
+
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -10,6 +11,7 @@ load_dotenv()
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 
 class BaseConfig:
     """Base configuration class with common settings."""
@@ -99,16 +101,18 @@ class BaseConfig:
     APOLLO_GRAPH_REF = os.getenv("APOLLO_GRAPH_REF", "opossum-search@current")
     APOLLO_SCHEMA_REPORTING = os.getenv("APOLLO_SCHEMA_REPORTING", "True").lower() == "true"
     APOLLO_INCLUDE_TRACES = os.getenv("APOLLO_INCLUDE_TRACES", "True").lower() == "true"
-    
+
     # GraphQL Voyager Configuration
     VOYAGER_ENABLED = os.getenv("VOYAGER_ENABLED", "True").lower() == "true"
     VOYAGER_ENDPOINT = os.getenv("VOYAGER_ENDPOINT", "/voyager")
     VOYAGER_PATH = os.getenv("VOYAGER_PATH", "voyager.html")
 
     # CORS Settings for GraphQL
-    CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:5000,https://studio.apollographql.com").split(",")
+    CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS",
+                                     "http://localhost:5000,https://studio.apollographql.com").split(",")
     CORS_ALLOW_CREDENTIALS = os.getenv("CORS_ALLOW_CREDENTIALS", "True").lower() == "true"
-    CORS_ALLOW_HEADERS = os.getenv("CORS_ALLOW_HEADERS", "Content-Type,Authorization,apollo-require-preflight").split(",")
+    CORS_ALLOW_HEADERS = os.getenv("CORS_ALLOW_HEADERS", "Content-Type,Authorization,apollo-require-preflight").split(
+        ",")
     CORS_EXPOSE_HEADERS = os.getenv("CORS_EXPOSE_HEADERS", "X-Rate-Limit").split(",")
 
     # Response Compression
@@ -122,15 +126,15 @@ class BaseConfig:
         default_limits = os.getenv("RATE_LIMIT_DEFAULT", "200 per day,50 per hour").split(",")
         complex_limits = os.getenv("RATE_LIMIT_COMPLEX", "100 per day,20 per hour").split(",")
         mutation_limits = os.getenv("RATE_LIMIT_MUTATION", "50 per day,10 per hour").split(",")
-        
+
         return {
             "default": default_limits,
             "complex_query": complex_limits,
             "mutation": mutation_limits
         }
-    
+
     GRAPHQL_RATE_LIMIT = get_rate_limits.__func__()
-    
+
     # Query cost map 
     GRAPHQL_COST_MAP = {
         "Query": {

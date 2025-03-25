@@ -1,11 +1,14 @@
 """Background schema types and queries."""
 import graphene
+
 from app.api.resolvers.background import resolve_generate_gibberish
+
 
 class GibberishResponse(graphene.ObjectType):
     """Generated background text with emojis."""
     text = graphene.String(description="Generated opossum-themed text")
     emojis = graphene.List(graphene.String, description="List of relevant emojis")
+
 
 # Background-related Query fields
 background_query_fields = {

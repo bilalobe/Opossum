@@ -1,14 +1,16 @@
 """Common GraphQL types that can be reused across schema files."""
-import graphene
-from datetime import datetime
-from typing import Dict, Any, List, Optional, Union
 import json
+from datetime import datetime
+from typing import Dict, Any, List, Optional
+
+import graphene
+
 
 class Timestamp(graphene.ObjectType):
     """Standardized timestamp representation."""
     iso_string = graphene.String(description="ISO8601 formatted timestamp")
     unix_timestamp = graphene.Int(description="Unix timestamp (seconds since epoch)")
-    
+
     @staticmethod
     def from_datetime(dt: datetime) -> Dict[str, Any]:
         """Create timestamp from datetime object."""
@@ -17,10 +19,12 @@ class Timestamp(graphene.ObjectType):
             "unix_timestamp": int(dt.timestamp()) if dt else None
         }
 
+
 class PaginationInput(graphene.InputObjectType):
     """Standard pagination input for queries."""
     page = graphene.Int(default_value=1, description="Page number (starting from 1)")
     page_size = graphene.Int(default_value=25, description="Items per page")
+
 
 class PageInfo(graphene.ObjectType):
     """Pagination information for collections."""
@@ -31,12 +35,13 @@ class PageInfo(graphene.ObjectType):
     current_page = graphene.Int(description="Current page number")
     page_size = graphene.Int(description="Items per page")
 
+
 class Error(graphene.ObjectType):
     """Standard error representation."""
     message = graphene.String(description="Human-readable error message")
     code = graphene.String(description="Error code for client handling")
     path = graphene.List(graphene.String, description="Path to the error in the query")
-    
+
     @staticmethod
     def create(message: str, code: str = "UNKNOWN_ERROR", path: Optional[List[str]] = None) -> Dict[str, Any]:
         """Create standardized error object."""
@@ -46,9 +51,10 @@ class Error(graphene.ObjectType):
             "path": path or []
         }
 
+
 class JSONScalar(graphene.Scalar):
     """Custom scalar for handling arbitrary JSON data."""
-    
+
     @staticmethod
     def serialize(value):
         """Convert value to JSON-compatible format."""
@@ -60,7 +66,7 @@ class JSONScalar(graphene.Scalar):
             except:
                 return value
         return str(value)
-    
+
     @staticmethod
     def parse_literal(ast):
         """Parse GraphQL AST node to Python representation."""
@@ -70,7 +76,7 @@ class JSONScalar(graphene.Scalar):
             except:
                 return ast.value
         return None
-    
+
     @staticmethod
     def parse_value(value):
         """Parse variable values to Python representation."""
@@ -81,6 +87,7 @@ class JSONScalar(graphene.Scalar):
                 return value
         return value
 
+
 class ModelInfo(graphene.ObjectType):
     """Information about an AI model."""
     name = graphene.String(description="Model identifier")
@@ -89,7 +96,7 @@ class ModelInfo(graphene.ObjectType):
     capabilities = graphene.List(graphene.String, description="Model capabilities")
     max_tokens = graphene.Int(description="Maximum token count for responses")
     context_length = graphene.Int(description="Maximum token count for context")
-    
+
     @staticmethod
     def from_config(name: str, config: Dict[str, Any], available: bool = True) -> Dict[str, Any]:
         """Create model info from configuration."""
@@ -98,7 +105,7 @@ class ModelInfo(graphene.ObjectType):
             capabilities.append("IMAGE_PROCESSING")
         if "streaming" in config.get("features", []):
             capabilities.append("STREAMING")
-            
+
         return {
             "name": name,
             "provider": config.get("provider", "unknown"),
@@ -107,6 +114,7 @@ class ModelInfo(graphene.ObjectType):
             "max_tokens": config.get("max_tokens", 1024),
             "context_length": config.get("context_length", 4096)
         }
+
 
 __all__ = [
     'Timestamp',

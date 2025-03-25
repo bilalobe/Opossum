@@ -1,15 +1,17 @@
 """API utilities for request validation and response formatting."""
 
 from functools import wraps
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional
+
 from flask import jsonify, request
 from pydantic import BaseModel, ValidationError
 
+
 def api_response(
-    data: Optional[Any] = None,
-    error: Optional[str] = None,
-    meta: Optional[Dict] = None,
-    status_code: int = 200
+        data: Optional[Any] = None,
+        error: Optional[str] = None,
+        meta: Optional[Dict] = None,
+        status_code: int = 200
 ) -> tuple:
     """
     Create a standardized API response.
@@ -31,6 +33,7 @@ def api_response(
     }
     return jsonify(response), status_code
 
+
 def validate_request(model: type[BaseModel]):
     """
     Decorator to validate request data against a Pydantic model.
@@ -38,6 +41,7 @@ def validate_request(model: type[BaseModel]):
     Args:
         model: Pydantic model class to validate against
     """
+
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
@@ -47,17 +51,17 @@ def validate_request(model: type[BaseModel]):
                     error="Content-Type must be application/json",
                     status_code=400
                 )
-            
+
             try:
                 # Get request data based on method
                 if request.method in ['GET', 'DELETE']:
                     data = request.args.to_dict()
                 else:
                     data = request.get_json(silent=True) or {}
-                
+
                 # Validate request data against model
                 validated_data = model(**data)
-                
+
                 # Pass validated data to route handler
                 return f(validated_data, *args, **kwargs)
             except ValidationError as e:
@@ -66,7 +70,7 @@ def validate_request(model: type[BaseModel]):
                 for error in e.errors():
                     field_path = " -> ".join(str(x) for x in error["loc"])
                     errors.append(f"{field_path}: {error['msg']}")
-                    
+
                 return api_response(
                     error="Validation error",
                     meta={"validation_errors": errors},
@@ -77,8 +81,11 @@ def validate_request(model: type[BaseModel]):
                     error=str(e),
                     status_code=500
                 )
+
         return decorated_function
+
     return decorator
+
 
 def rate_limit_exceeded_response():
     """Generate response for rate limit exceeded."""
@@ -93,6 +100,7 @@ def rate_limit_exceeded_response():
         status_code=429
     )
 
+
 def validate_content_type(*allowed_types: str):
     """
     Decorator to validate request content type.
@@ -100,22 +108,25 @@ def validate_content_type(*allowed_types: str):
     Args:
         allowed_types: List of allowed content types (e.g., 'application/json', 'image/*')
     """
+
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
             content_type = request.headers.get('Content-Type', '')
-            
+
             # Check if content type matches any allowed types
             if not any(
-                allowed.endswith('*') and content_type.startswith(allowed[:-1]) or
-                content_type == allowed
-                for allowed in allowed_types
+                    allowed.endswith('*') and content_type.startswith(allowed[:-1]) or
+                    content_type == allowed
+                    for allowed in allowed_types
             ):
                 return api_response(
                     error=f"Unsupported Content-Type. Allowed: {', '.join(allowed_types)}",
                     status_code=415
                 )
-            
+
             return f(*args, **kwargs)
+
         return decorated_function
+
     return decorator

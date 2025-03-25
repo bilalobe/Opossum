@@ -1,15 +1,14 @@
 """Image processing resolvers with enhanced functionality."""
-import logging
 import base64
-from typing import Dict, Any, Optional
 import json
-from io import BytesIO
+import logging
 
-from app.utils.processing.image_processor import ImageProcessor
 from app.api.directives import apply_cost, rate_limit
 from app.api.types import Error
+from app.utils.processing.image_processor import ImageProcessor
 
 logger = logging.getLogger(__name__)
+
 
 @apply_cost(value=5)
 async def resolve_image_info(root, info, image_data):
@@ -21,21 +20,21 @@ async def resolve_image_info(root, info, image_data):
                 message="Invalid image data format",
                 code="INVALID_IMAGE_DATA"
             )
-            
+
         # Extract the actual base64 content after the comma
         _, b64data = image_data.split("base64,", 1)
         image_bytes = base64.b64decode(b64data)
-        
+
         # Create processor and analyze image
         processor = ImageProcessor()
         image_info = processor.get_image_info(image_bytes)
-        
+
         if not image_info:
             return Error.create(
                 message="Failed to process image",
                 code="IMAGE_PROCESSING_ERROR"
             )
-            
+
         # Return standardized format
         return {
             "width": image_info.get("width", 0),
@@ -51,6 +50,7 @@ async def resolve_image_info(root, info, image_data):
             code="IMAGE_PROCESSING_ERROR"
         )
 
+
 @apply_cost(value=15, multipliers="effects")
 @rate_limit(limit=20, duration=60)  # 20 requests per minute
 async def resolve_process_image(root, info, image_data, effects=None):
@@ -62,15 +62,15 @@ async def resolve_process_image(root, info, image_data, effects=None):
                 message="Invalid image data format",
                 code="INVALID_IMAGE_DATA"
             )
-            
+
         # Extract the actual base64 content after the comma
         _, b64data = image_data.split("base64,", 1)
         image_bytes = base64.b64decode(b64data)
-        
+
         # Default empty effects if none provided
         if effects is None:
             effects = {}
-            
+
         # Create processor and process image
         processor = ImageProcessor()
         result = processor.process_image(
@@ -81,16 +81,16 @@ async def resolve_process_image(root, info, image_data, effects=None):
             blur=effects.get("blur", 0),
             sharpen=effects.get("sharpen", 0)
         )
-        
+
         if not result:
             return Error.create(
                 message="Failed to process image",
                 code="IMAGE_PROCESSING_ERROR"
             )
-            
+
         # Get image info for the processed result
         processed_info = processor.get_image_info(result["processed_image"])
-        
+
         # Return processed result with thumbnail
         return {
             "processed_image": f"data:image/{result['format'].lower()};base64,{base64.b64encode(result['processed_image']).decode('utf-8')}",
@@ -110,6 +110,7 @@ async def resolve_process_image(root, info, image_data, effects=None):
             code="IMAGE_PROCESSING_ERROR"
         )
 
+
 @apply_cost(value=10)
 @rate_limit(limit=30, duration=60)  # 30 requests per minute
 async def resolve_upload_image(root, info, file_data, content_type):
@@ -121,32 +122,32 @@ async def resolve_upload_image(root, info, file_data, content_type):
                 message="Missing file data or content type",
                 code="INVALID_UPLOAD"
             )
-            
+
         # Decode base64 file data
         file_bytes = base64.b64decode(file_data)
-        
+
         # Create processor and handle the uploaded image
         processor = ImageProcessor()
-        
+
         # Basic validation of image type
         if not content_type.startswith("image/"):
             return Error.create(
                 message="Invalid file type. Only images are supported.",
                 code="INVALID_FILE_TYPE"
             )
-            
+
         # Process uploaded image (with default effects)
         result = processor.process_image(file_bytes)
-        
+
         if not result:
             return Error.create(
                 message="Failed to process uploaded image",
                 code="IMAGE_PROCESSING_ERROR"
             )
-            
+
         # Get image info for the processed result
         processed_info = processor.get_image_info(result["processed_image"])
-        
+
         # Return processed result with thumbnail
         return {
             "processed_image": f"data:image/{result['format'].lower()};base64,{base64.b64encode(result['processed_image']).decode('utf-8')}",

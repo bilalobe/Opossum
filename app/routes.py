@@ -1,6 +1,7 @@
 # app/routes.py
 import logging
 import random
+
 import emoji
 import markovify
 from flask import Blueprint, render_template
@@ -24,11 +25,11 @@ OPOSSUM_TEXTS = [
 # Technical texts for mixed gibberish generation
 TECH_TEXTS = [
     """Natural Language Processing (NLP) is a branch of artificial intelligence that helps computers understand, interpret, and manipulate human language. NLP combines computational linguistics, machine learning, and deep learning models.""",
-    
+
     """API endpoints provide a structured way to interact with a service. REST APIs use HTTP methods like GET, POST, PUT, and DELETE. GraphQL provides a more flexible approach with a single endpoint that can handle complex queries.""",
-    
+
     """Service availability monitoring tracks the health and performance of system components. Metrics like response time, error rates, and uptime help maintain system reliability. Failover mechanisms ensure continuous service.""",
-    
+
     """Machine learning models process input data through layers of mathematical computations. Neural networks can identify patterns and make predictions based on training data. Model performance depends on data quality and architecture."""
 ]
 
@@ -47,25 +48,27 @@ _opossum_model = None
 _tech_model = None
 _combined_model = None
 
+
 def _get_markov_models():
     """Initialize and cache Markov models."""
     global _opossum_model, _tech_model, _combined_model
-    
+
     if _combined_model is None:
         # Preprocess texts to ensure good sentence structure
         def preprocess_texts(texts):
             return [text.strip().replace('\n', ' ') for text in texts]
-        
+
         processed_opossum = preprocess_texts(OPOSSUM_TEXTS)
         processed_tech = preprocess_texts(TECH_TEXTS)
-        
+
         # Initialize models with processed texts
         _opossum_model = markovify.Text("\n".join(processed_opossum))
         _tech_model = markovify.Text("\n".join(processed_tech))
         # Combine models with more weight on opossum content
         _combined_model = markovify.combine([_opossum_model, _tech_model], [1.5, 1])
-    
+
     return _combined_model
+
 
 def _get_random_emojis(count=1):
     """Get random emojis from the specified categories."""
@@ -74,15 +77,16 @@ def _get_random_emojis(count=1):
     for emoji_data in emoji.EMOJI_DATA.values():
         if any(cat in EMOJI_CATEGORIES for cat in emoji_data.get('category', '').lower().split()):
             category_emojis.append(emoji_data['emoji'])
-    
+
     # Return random selection
     return random.sample(category_emojis, min(count, len(category_emojis)))
+
 
 def _generate_nlp_gibberish(num_lines=25):
     """Generate random opossum-themed text with actual NLP."""
     model = _get_markov_models()
     lines = []
-    
+
     for _ in range(num_lines):
         try:
             line = model.make_sentence(tries=100)
@@ -91,8 +95,9 @@ def _generate_nlp_gibberish(num_lines=25):
         except Exception as e:
             logger.error(f"Error generating line: {e}")
             continue
-    
+
     return "\n".join(lines)
+
 
 @bp.route('/')
 def index():
