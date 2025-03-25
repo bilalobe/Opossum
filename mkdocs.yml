@@ -9,7 +9,7 @@ site_author: bebo
 # Theme configuration
 theme:
   name: readthedocs
-  favicon: assets/images/favicon.ico
+  # favicon: assets/images/favicon.png
   features:
     - navigation.tabs
     - navigation.sections
@@ -77,6 +77,7 @@ nav:
     - Operations:
       - Security Model: technical/security-model.md
       - Error Handling & Resilience: technical/error-handling-resilience.md
+      - Bot User Simulation: technical/bot-user-simulation.md
   - Service Availability:
     - Context and Scope: service-availability/context-and-scope.md
     - Quality Requirements: service-availability/quality-requirements.md
@@ -107,7 +108,6 @@ nav:
   - API Reference:
     - Getting Started: api/getting-started.md
     - Routes: api/routes.md
-    - OAuth Configuration: api/oauth-configuration.md
     - Request/Response: api/request-response.md
     - Error Codes: api/error-codes.md
     - Rate Limits: api/rate-limits.md
