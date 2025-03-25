@@ -1,7 +1,9 @@
 import logging
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
-from typing import Optional, Dict, Any, List
+from typing import Dict, Any
+
+from sklearn import pipeline
 
 from app.config import Config
 from app.models.base import ModelBackend

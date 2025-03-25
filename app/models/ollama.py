@@ -101,7 +101,8 @@ class OllamaBackend(ModelBackend):
                     # Return fallback response instead of raising to support hybrid model
                     return "I'm unable to generate a response at the moment. Please try again later."
     
-    async def process_image(self, image_data: str, prompt: str) -> str:
+    @staticmethod
+    async def process_image(image_data: str, prompt: str) -> str:
         """Process an image using LLaVa via Ollama API."""
         logger.info("Processing image with LLaVa model")
         
