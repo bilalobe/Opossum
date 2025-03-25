@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 class OllamaBackend(ModelBackend):
     """Backend for local Ollama instance"""
-    
+
     def __init__(self, model_name: str = None):
         """Initialize the Ollama backend.
         
@@ -28,10 +28,10 @@ class OllamaBackend(ModelBackend):
             "version": "1.0"
         }
         self.api_url = Config.OLLAMA_URL
-        
+
         # Check if Ollama is available
         asyncio.create_task(self._check_availability())
-    
+
     async def _check_availability(self) -> None:
         """Check if Ollama API is available."""
         try:
@@ -41,11 +41,11 @@ class OllamaBackend(ModelBackend):
                     timeout=5
                 )
                 response.raise_for_status()
-                
+
                 # Check if our model is available in the list
                 models = response.json().get("models", [])
                 model_names = [model.get("name") for model in models]
-                
+
                 if self.model_name in model_names:
                     self.available = True
                     logger.info(f"Ollama backend initialized with model {self.model_name}")
@@ -100,15 +100,15 @@ class OllamaBackend(ModelBackend):
                 else:
                     # Return fallback response instead of raising to support hybrid model
                     return "I'm unable to generate a response at the moment. Please try again later."
-    
+
     @staticmethod
     async def process_image(image_data: str, prompt: str) -> str:
         """Process an image using LLaVa via Ollama API."""
         logger.info("Processing image with LLaVa model")
-        
+
         try:
             api_url = f"{Config.OLLAMA_BASE_URL}/api/chat"
-            
+
             payload = {
                 "model": Config.LLAVA_MODEL,
                 "messages": [
@@ -124,12 +124,12 @@ class OllamaBackend(ModelBackend):
                     "top_p": Config.TOP_P
                 }
             }
-            
+
             async with httpx.AsyncClient(timeout=60.0) as client:
                 response = await client.post(api_url, json=payload)
                 response.raise_for_status()
                 result = response.json()
-                
+
             return result["message"]["content"]
         except Exception as e:
             logger.error(f"Error processing image with LLaVa: {str(e)}")
@@ -138,10 +138,10 @@ class OllamaBackend(ModelBackend):
     async def get_embeddings(self, texts: Union[str, List[str]]) -> Optional[List[List[float]]]:
         """Generate embeddings using MiniLM via Ollama API."""
         logger.info("Generating embeddings with MiniLM model")
-        
+
         try:
             input_texts = texts if isinstance(texts, list) else [texts]
-            
+
             async with httpx.AsyncClient(timeout=30.0) as client:
                 response = await client.post(
                     f"{Config.OLLAMA_BASE_URL}/api/embed",
@@ -152,7 +152,7 @@ class OllamaBackend(ModelBackend):
                 )
                 response.raise_for_status()
                 result = response.json()
-                
+
             return result["embeddings"]
         except Exception as e:
             logger.error(f"Error generating embeddings with MiniLM: {str(e)}")
@@ -161,19 +161,19 @@ class OllamaBackend(ModelBackend):
     async def check_required_models(self) -> Dict[str, Any]:
         """Check if required models are available and notify user if not."""
         required_models = [
-            Config.OLLAMA_MODEL,     # gemma:1b
-            Config.LLAVA_MODEL,      # llava
-            Config.MINILM_MODEL      # all-minilm
+            Config.OLLAMA_MODEL,  # gemma:1b
+            Config.LLAVA_MODEL,  # llava
+            Config.MINILM_MODEL  # all-minilm
         ]
-        
+
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.get(f"{Config.OLLAMA_BASE_URL}/api/tags", timeout=5)
                 response.raise_for_status()
-                
+
                 available_models = [model.get("name") for model in response.json().get("models", [])]
                 missing_models = [model for model in required_models if model not in available_models]
-                
+
                 if missing_models:
                     logger.warning(f"Missing required Ollama models: {', '.join(missing_models)}")
                     return {
@@ -181,7 +181,7 @@ class OllamaBackend(ModelBackend):
                         "download_commands": [f"ollama pull {model}" for model in missing_models]
                     }
                 return {"status": "all_models_available"}
-                
+
         except Exception as e:
             logger.error(f"Failed to check Ollama models: {str(e)}")
             return {"status": "error", "message": str(e)}
@@ -198,7 +198,7 @@ class OllamaBackend(ModelBackend):
             "max_tokens": Config.MAX_TOKENS,
             "features": ["text-generation"]
         }
-    
+
     @property
     def is_available(self) -> bool:
         """Check if this backend is available.
@@ -207,7 +207,7 @@ class OllamaBackend(ModelBackend):
             True if the backend is available, False otherwise
         """
         return self.available
-    
+
     @property
     def supports_images(self) -> bool:
         """Check if this backend supports image inputs.

@@ -1,5 +1,5 @@
-import logging
 import asyncio
+import logging
 from concurrent.futures import ThreadPoolExecutor
 from typing import Dict, Any
 
@@ -17,7 +17,7 @@ class TransformersBackend(ModelBackend):
     def __init__(self):
         """Initialize the transformers pipeline with optimized memory usage."""
         self.pipeline = pipeline(
-            "text-generation", 
+            "text-generation",
             model="google/gemma-2b",
             low_cpu_mem_usage=True,
             device_map="auto"
@@ -40,7 +40,7 @@ class TransformersBackend(ModelBackend):
                 from transformers import pipeline
                 logger.info("Initializing Transformers backend with gemma-2b model")
                 self._pipeline = pipeline(
-                    "text-generation", 
+                    "text-generation",
                     model="google/gemma-2b",
                     low_cpu_mem_usage=True,
                     device_map="auto"  # Use GPU if available, otherwise CPU
@@ -76,7 +76,7 @@ class TransformersBackend(ModelBackend):
             logger.error(f"Transformers pipeline error: {e}")
             # Return fallback response instead of raising to support hybrid model
             return "I'm unable to generate a response at the moment. Please try again later."
-    
+
     def _generate_text(self, prompt: str) -> str:
         """Internal method to generate text with the pipeline."""
         generation_params = {
@@ -87,11 +87,11 @@ class TransformersBackend(ModelBackend):
             "do_sample": True,
             "num_return_sequences": 1,
         }
-        
+
         result = self.pipeline(prompt, **generation_params)
         # Extract only the newly generated text (without the prompt)
         return result[0]['generated_text'][len(prompt):].strip()
-            
+
     def get_info(self) -> Dict[str, Any]:
         """Get information about this model backend."""
         return {
@@ -100,7 +100,7 @@ class TransformersBackend(ModelBackend):
             "max_tokens": Config.MAX_TOKENS,
             "features": ["text-generation"]
         }
-    
+
     @property
     def is_available(self) -> bool:
         """Check if this backend is available."""
@@ -108,7 +108,7 @@ class TransformersBackend(ModelBackend):
         if not self.available and self._pipeline is None:
             _ = self.pipeline
         return self.available
-    
+
     def unload_model(self):
         """Explicitly unload model to free memory"""
         if self._pipeline is not None:
@@ -127,7 +127,7 @@ class TransformersBackend(ModelBackend):
                 pass
             logger.info("Transformers model unloaded")
             self.available = False
-            
+
     def __del__(self):
         """Clean up resources when object is deleted."""
         self.unload_model()

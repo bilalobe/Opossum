@@ -1,7 +1,7 @@
 """Google Gemini model backend with multimodal capabilities."""
 import base64
 import logging
-from typing import Dict, Any, Optional, Union
+from typing import Dict, Any, Optional
 
 from app.config import Config
 from app.models.base import ModelBackend
@@ -27,7 +27,7 @@ class GeminiBackend(ModelBackend):
             "provider": "gemini",
             "version": "2.0"
         }
-        
+
         try:
             from google import generativeai as genai
             genai.configure(api_key=Config.GEMINI_API_KEY)
@@ -84,10 +84,10 @@ class GeminiBackend(ModelBackend):
             # Return fallback response instead of raising to support hybrid model
             return "I'm unable to generate a response at the moment. Please try again later."
 
-    async def generate_multimodal_response(self, 
-                                          user_message: str, 
-                                          conversation_stage: Optional[str] = None, 
-                                          image_data: Optional[str] = None) -> str:
+    async def generate_multimodal_response(self,
+                                           user_message: str,
+                                           conversation_stage: Optional[str] = None,
+                                           image_data: Optional[str] = None) -> str:
         """Generate a response for text + image input.
         
         Args:
@@ -167,7 +167,7 @@ class GeminiBackend(ModelBackend):
             logger.error(f"Gemini multimodal API error: {e}", exc_info=True)
             # Return fallback response instead of raising to support hybrid model
             return "I'm unable to analyze this image at the moment. Please try again later or try with a different image."
-    
+
     def get_info(self) -> Dict[str, Any]:
         """Get information about this model backend.
         
@@ -180,7 +180,7 @@ class GeminiBackend(ModelBackend):
             "max_tokens": Config.MAX_TOKENS,
             "features": ["text-generation", "multimodal", "image-understanding"]
         }
-    
+
     @property
     def is_available(self) -> bool:
         """Check if this backend is available.
@@ -189,7 +189,7 @@ class GeminiBackend(ModelBackend):
             True if the backend is available, False otherwise
         """
         return self.available
-    
+
     @property
     def supports_images(self) -> bool:
         """Check if this backend supports image inputs.

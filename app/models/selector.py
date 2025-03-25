@@ -1,6 +1,6 @@
 import logging
-from typing import Dict, List, Tuple, Optional
 import time
+from typing import Dict, List, Tuple, Optional
 
 from app.config import Config
 from app.models.availability import ServiceAvailability
@@ -154,17 +154,17 @@ class ModelSelector:
 
         # Match to capabilities, but only for available services
         model_selection = self._match_to_capabilities(task_requirements, available_backends)
-        
+
         # Cache the result
         add_to_cache(cache_key, model_selection, ttl=10)  # Cache for 10 seconds
-        
+
         logger.info(f"Selected {model_selection[2]}/{model_selection[0]} with confidence {model_selection[1]:.2f}")
         return model_selection
 
     async def _check_availability(self):
         """Check service availability with caching to reduce API calls"""
         current_time = time.time()
-        
+
         # Only check availability if the last check was more than Config.AVAILABILITY_CACHE_TTL seconds ago
         if current_time - self._last_availability_check > Config.AVAILABILITY_CACHE_TTL:
             await self.availability.check_all_services()
@@ -219,7 +219,8 @@ class ModelSelector:
 
         return best_model, best_score, best_provider
 
-    def _analyze_task_requirements(self, user_message: str, conversation_stage: str, has_image: bool) -> Dict[str, float]:
+    def _analyze_task_requirements(self, user_message: str, conversation_stage: str, has_image: bool) -> Dict[
+        str, float]:
         """Analyze the task to determine requirements based on message content, conversation stage, and image presence"""
         requirements = {
             "text_processing": 0.5,  # Base requirement
@@ -241,7 +242,7 @@ class ModelSelector:
         elif conversation_stage == "follow_up":
             # Follow-up questions often need more context and reasoning
             requirements["reasoning"] = 0.6
-        
+
         # Check for complex reasoning needs
         if _requires_complex_reasoning(user_message):
             requirements["reasoning"] = 0.9
@@ -269,7 +270,7 @@ class ModelSelector:
         """Calculate similarity scores between the user message and all topics"""
         if not self.topic_detector:
             return None
-            
+
         cache_key = f"similarity_{user_message}"
         similarities = get_from_cache(cache_key)
 

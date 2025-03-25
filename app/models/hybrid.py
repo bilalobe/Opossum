@@ -1,7 +1,7 @@
 """Hybrid model backend that intelligently combines multiple model capabilities."""
 
 import logging
-from typing import Optional, Dict, Tuple, List, Any, Union, cast
+from typing import Optional, Dict, Tuple, Any, cast
 
 from app.config import Config
 from app.models.availability import ServiceAvailability
@@ -53,7 +53,7 @@ class HybridModelBackend(ModelBackend):
         cached_response = await redis_client.get(cache_key)
         if cached_response:
             return cached_response.decode('utf-8')
-        
+
         try:
             # Analyze requirements and select backend
             backend_name, confidence = await self.__select_backend(prompt, conversation_stage or "general")
@@ -77,10 +77,10 @@ class HybridModelBackend(ModelBackend):
             await redis_client.setex(cache_key, Config.CACHE_TTL, response)
             return response
 
-    async def generate_multimodal_response(self, 
-                                          user_message: str, 
-                                          conversation_stage: Optional[str] = None, 
-                                          image_data: Optional[str] = None) -> str:
+    async def generate_multimodal_response(self,
+                                           user_message: str,
+                                           conversation_stage: Optional[str] = None,
+                                           image_data: Optional[str] = None) -> str:
         """Generate a response for text + image input using the most appropriate backend.
         
         Args:
@@ -94,7 +94,7 @@ class HybridModelBackend(ModelBackend):
         if not image_data:
             # If no image is provided, fall back to text-only generation
             return await self.generate_response(user_message, conversation_stage)
-            
+
         try:
             # For multimodal, we prefer Gemini if available
             if await self.__is_backend_available('gemini'):
@@ -104,7 +104,7 @@ class HybridModelBackend(ModelBackend):
                     return await backend.generate_multimodal_response(
                         user_message, conversation_stage, image_data
                     )
-            
+
             # Fallback to text-only with image description
             fallback_prompt = (
                 f"[Image description: The user uploaded an image, but I'm unable to view it.]\n\n"
@@ -113,7 +113,7 @@ class HybridModelBackend(ModelBackend):
             )
             logger.warning("No multimodal backend available, using text-only fallback")
             return await self.generate_response(fallback_prompt, conversation_stage)
-            
+
         except Exception as e:
             logger.error(f"Error in hybrid multimodal generation: {str(e)}", exc_info=True)
             return (
@@ -135,7 +135,7 @@ class HybridModelBackend(ModelBackend):
         import hashlib
         message_hash = hashlib.md5(prompt.encode()).hexdigest()[:8]
         cache_key = f"model_select:{message_hash}:{conversation_stage}"
-        
+
         # Try to get cached result
         from app.utils.infrastructure.redis_config import get_from_cache
         cached = get_from_cache(cache_key, dependency_keys=["service_status"])
@@ -145,7 +145,7 @@ class HybridModelBackend(ModelBackend):
 
         # Calculate scores for each available backend
         scores = {}
-        
+
         # Rest of the existing backend selection logic
         if self.availability.service_status.get("gemini", {}).get("available", False):
             scores['gemini'] = self.__calculate_backend_score({
@@ -177,7 +177,7 @@ class HybridModelBackend(ModelBackend):
         # Analyze prompt complexity and adjust scores
         if any(word in prompt.lower() for word in ['what', 'when', 'where']) and len(prompt.split()) < 15:
             scores['transformers'] += 0.2
-            
+
         if any(word in prompt.lower() for word in ['why', 'how', 'explain', 'analyze']):
             if 'gemini' in scores:
                 scores['gemini'] += 0.2
@@ -186,16 +186,16 @@ class HybridModelBackend(ModelBackend):
         if scores:
             best_backend = max(scores.items(), key=lambda x: x[1])
             result = (best_backend[0], best_backend[1])
-            
+
             # Cache the result
             from app.utils.infrastructure.redis_config import add_to_cache
-            add_to_cache(cache_key, result, ttl=Config.MODEL_SELECTION_CACHE_TTL, 
-                        dependency_keys=["service_status"])
-            
+            add_to_cache(cache_key, result, ttl=Config.MODEL_SELECTION_CACHE_TTL,
+                         dependency_keys=["service_status"])
+
             # Update Prometheus metrics if available
             if hasattr(self.availability, 'metrics'):
                 self.availability._increment_model_selection(best_backend[0])
-                
+
             return result
 
         return 'transformers', 0.5  # Fallback option
@@ -243,7 +243,7 @@ class HybridModelBackend(ModelBackend):
                 return None
 
         return self.__backends[backend_name]
-        
+
     async def __is_backend_available(self, backend_name: str) -> bool:
         """Check if a specific backend is available.
         
@@ -255,14 +255,14 @@ class HybridModelBackend(ModelBackend):
         """
         if backend_name not in self.__backends:
             return False
-            
+
         # If backend is already initialized, check its availability
         if self.__backends[backend_name]:
             backend = self.__backends[backend_name]
             if hasattr(backend, 'is_available'):
                 return cast(bool, backend.is_available)
             return True
-            
+
         # Otherwise check the service availability
         return self.availability.service_status.get(backend_name, {}).get("available", False)
 
@@ -281,11 +281,11 @@ class HybridModelBackend(ModelBackend):
             backend = await self.__get_or_create_backend('transformers')
             if backend:
                 return await backend.generate_response(prompt, conversation_stage)
-                
+
             # If transformers fails, return a template response
             logger.error("All backends failed, using template response")
             return self.__template_response(prompt, conversation_stage)
-            
+
         except Exception as e:
             logger.error(f"Fallback generation failed: {str(e)}", exc_info=True)
             return self.__template_response(prompt, conversation_stage)
@@ -303,7 +303,7 @@ class HybridModelBackend(ModelBackend):
         # Extract a potential topic from the prompt
         words = prompt.split()
         topic = "opossums"  # Default topic
-        
+
         # Look for potential topics in the prompt
         nature_keywords = ["live", "habitat", "eat", "diet", "food", "sleep", "baby", "babies", "young"]
         if any(word.lower() in nature_keywords for word in words):
@@ -313,14 +313,14 @@ class HybridModelBackend(ModelBackend):
                 "Opossums are generally docile and prefer to avoid confrontation. "
                 "I apologize that I can't provide more specific information right now."
             )
-            
+
         return (
             "I apologize, but I'm having trouble generating a response right now. "
             "Opossums are fascinating creatures with many interesting characteristics. "
             "They're the only marsupials native to North America and have excellent immune systems. "
             "If you have specific questions about opossums, please try again later."
         )
-    
+
     def get_info(self) -> Dict[str, Any]:
         """Get information about this model backend.
         
@@ -339,14 +339,14 @@ class HybridModelBackend(ModelBackend):
                     backends_info[name] = {"available": False, "name": name}
             else:
                 backends_info[name] = {"available": False, "name": name}
-                
+
         return {
             **self.model_info,
             "available": True,  # Hybrid is always available due to fallbacks
             "backends": backends_info,
             "features": ["text-generation", "multimodal", "fallback-handling", "auto-selection"]
         }
-    
+
     @property
     def is_available(self) -> bool:
         """Check if this backend is available.
@@ -355,7 +355,7 @@ class HybridModelBackend(ModelBackend):
             Always True as the hybrid backend always has fallbacks
         """
         return True
-    
+
     @property
     def supports_images(self) -> bool:
         """Check if this backend supports image inputs.
@@ -368,6 +368,6 @@ class HybridModelBackend(ModelBackend):
             backend = self.__backends['gemini']
             if hasattr(backend, 'supports_images'):
                 return cast(bool, backend.supports_images)
-        
+
         # Otherwise check availability status
         return self.availability.service_status.get("gemini", {}).get("available", False)
