@@ -1,6 +1,6 @@
 # Technical Documentation: Security Model
 
-## 1. Security Architecture Overview
+## Security Architecture Overview
 
 Opossum Search implements a comprehensive security model to protect user data, API infrastructure, and backend services. The security architecture follows these key principles:
 
@@ -37,9 +37,9 @@ flowchart TD
     style I fill:#B6D7A8
 ```
 
-## 2. Authentication and Authorization
+## Authentication and Authorization
 
-### 2.1 Authentication Mechanisms
+### Authentication Mechanisms
 
 ```python
 # app/auth/authentication.py
@@ -63,7 +63,7 @@ async def authenticate_request(request):
     return None
 ```
 
-### 2.2 Authorization Framework
+### Authorization Framework
 
 ```python
 # GraphQL auth directive implementation
@@ -91,7 +91,7 @@ class AuthDirective(SchemaDirectiveVisitor):
         return field
 ```
 
-### 2.3 Permission Model
+### Permission Model
 
 | Role | Capabilities | Access Control |
 |------|--------------|----------------|
@@ -99,9 +99,9 @@ class AuthDirective(SchemaDirectiveVisitor):
 | **User** | Standard search, chat, image processing | Rate limited to 50 requests/minute |
 | **Admin** | All features, system management | Rate limited to 100 requests/minute |
 
-## 3. Data Security
+## Data Security
 
-### 3.1 Data Classification
+### Data Classification
 
 | Category | Description | Examples | Protection |
 |----------|-------------|----------|------------|
@@ -110,7 +110,7 @@ class AuthDirective(SchemaDirectiveVisitor):
 | **Confidential** | Business sensitive | API keys, user search history | Encryption, access control |
 | **Restricted** | Highly sensitive | Authentication tokens | Encryption, strict access |
 
-### 3.2 Encryption Implementation
+### Encryption Implementation
 
 ```python
 # app/security/encryption.py
@@ -139,7 +139,7 @@ class DataEncryption:
         return self.cipher.decrypt(data).decode()
 ```
 
-### 3.3 Database Security
+### Database Security
 
 ```python
 # Redis security configuration in config.py
@@ -161,7 +161,7 @@ async def get_redis_client():
     )
 ```
 
-### 3.4 Data Retention Policies
+### Data Retention Policies
 
 ```python
 # app/policies/retention.py
@@ -190,9 +190,9 @@ async def apply_retention_policies():
             await redis.delete(key)
 ```
 
-## 4. API Security
+## API Security
 
-### 4.1 GraphQL Security Controls
+### GraphQL Security Controls
 
 ```python
 # GraphQL security configuration
@@ -208,7 +208,7 @@ graphql_app = GraphQL(
 )
 ```
 
-### 4.2 Rate Limiting Implementation
+### Rate Limiting Implementation
 
 ```python
 # app/security/rate_limiting.py
@@ -267,7 +267,7 @@ class RateLimiter:
             return 86400  # Default to day
 ```
 
-### 4.3 Input Validation
+### Input Validation
 
 ```python
 # app/validators/input_validator.py
@@ -305,9 +305,9 @@ class InputValidator:
         return re.sub(r'<.*?>', '', text)
 ```
 
-## 5. Image Processing Security
+## Image Processing Security
 
-### 5.1 Image Validation
+### Image Validation
 
 ```python
 # app/security/image_validation.py
@@ -343,7 +343,7 @@ def validate_image(image_data, mime_type=None):
         raise SecurityError(f"Image validation failed: {str(e)}")
 ```
 
-### 5.2 SVG Sanitization
+### SVG Sanitization
 
 ```python
 # app/security/svg_sanitization.py
@@ -371,9 +371,9 @@ def sanitize_svg(svg_markup):
     return svg_markup
 ```
 
-## 6. Model Security
+## Model Security
 
-### 6.1 Prompt Injection Protection
+### Prompt Injection Protection
 
 ```python
 # app/security/prompt_security.py
@@ -399,7 +399,7 @@ def secure_prompt(user_input, template):
     return safety_instructions + prompt
 ```
 
-### 6.2 Response Filtering
+### Response Filtering
 
 ```python
 # app/security/content_filtering.py
@@ -442,9 +442,9 @@ class ContentFilter:
         return filtered_response
 ```
 
-## 7. Infrastructure Security
+## Infrastructure Security
 
-### 7.1 Network Security Configuration
+### Network Security Configuration
 
 ```yaml
 # docker-compose network configuration
@@ -471,7 +471,7 @@ networks:
     internal: true  # Not exposed externally
 ```
 
-### 7.2 Container Security
+### Container Security
 
 ```dockerfile
 # Dockerfile with security best practices
@@ -510,7 +510,7 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
 ENTRYPOINT ["python", "main.py"]
 ```
 
-### 7.3 Secret Management
+### Secret Management
 
 ```yaml
 # Kubernetes secrets configuration
@@ -525,9 +525,9 @@ data:
   encryption-key: <base64-encoded-key>
 ```
 
-## 8. Monitoring and Incident Response
+## Monitoring and Incident Response
 
-### 8.1 Security Logging
+### Security Logging
 
 ```python
 # app/monitoring/security_logging.py
@@ -576,7 +576,7 @@ class SecurityLogger:
         redis_client.publish("security:alerts:channel", json.dumps(alert))
 ```
 
-### 8.2 Intrusion Detection
+### Intrusion Detection
 
 ```python
 # app/security/intrusion_detection.py
@@ -626,7 +626,7 @@ class IntrusionDetection:
         return False  # No intrusion detected
 ```
 
-### 8.3 Incident Response Plan
+### Incident Response Plan
 
 ```python
 # app/security/incident_response.py
@@ -666,9 +666,9 @@ class IncidentResponse:
             await redis_client.expire(f"session:key:{api_key}", 60)
 ```
 
-## 9. Compliance Framework
+## Compliance Framework
 
-### 9.1 Compliance Controls
+### Compliance Controls
 
 | Requirement | Implementation | Verification |
 |-------------|----------------|--------------|
@@ -678,7 +678,7 @@ class IncidentResponse:
 | **Data Protection** | Data retention policies, minimization | Periodic data reviews |
 | **Vulnerability Management** | Regular dependency updates, scanning | CI/CD pipeline checks |
 
-### 9.2 Privacy by Design
+### Privacy by Design
 
 ```python
 # app/privacy/data_minimization.py
@@ -708,7 +708,7 @@ class DataMinimization:
         return minimized
 ```
 
-### 9.3 Data Subject Rights
+### Data Subject Rights
 
 ```python
 # app/privacy/dsr.py
