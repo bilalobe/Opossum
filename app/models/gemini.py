@@ -45,6 +45,11 @@ class GeminiBackend(ModelBackend):
         except Exception as e:
             logger.error(f"Failed to initialize Gemini backend: {str(e)}")
             self.available = False
+            
+    def __repr__(self):
+        """Return a string representation of the Gemini backend."""
+        model_status = 'initialized' if self.model else 'not initialized'
+        return f"GeminiBackend(model='{self.model_name}', available={self.available}, status={model_status})"
 
     async def generate_response(self, prompt: str, conversation_stage: Optional[str] = None) -> str:
         """Generate a text-only response using Gemini API.

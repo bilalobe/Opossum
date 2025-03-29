@@ -9,6 +9,12 @@ class ModelBackend(ABC):
         """Generate a response for the given prompt and conversation stage"""
         pass
 
+    def __repr__(self):
+        """Return a string representation of the model backend."""
+        available_status = getattr(self, 'available', 'Unknown')
+        model_name = getattr(self, 'model_name', 'Unknown')
+        return f"{self.__class__.__name__}(model={model_name}, available={available_status})"
+
     @staticmethod
     def format_prompt(user_message, conversation_stage):
         """Format the prompt for the model"""

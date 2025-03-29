@@ -31,6 +31,10 @@ class OllamaBackend(ModelBackend):
 
         # Check if Ollama is available
         asyncio.create_task(self._check_availability())
+        
+    def __repr__(self):
+        """Return a string representation of the Ollama backend."""
+        return f"OllamaBackend(model='{self.model_name}', available={self.available}, api_url='{self.api_url}')"
 
     async def _check_availability(self) -> None:
         """Check if Ollama API is available."""
