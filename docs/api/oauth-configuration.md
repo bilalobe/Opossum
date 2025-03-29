@@ -2,7 +2,8 @@
 
 ## Overview
 
-Opossum Search supports OAuth 2.0 authentication for secure user authorization. This document explains how to configure and use OAuth 2.0 in your applications.
+Opossum Search supports OAuth 2.0 authentication for secure user authorization. This document explains how to configure
+and use OAuth 2.0 in your applications.
 
 ## Prerequisites
 
@@ -19,16 +20,19 @@ GET /oauth/authorize
 ```
 
 **Required Parameters:**
+
 - `client_id` - Your OAuth client ID
 - `redirect_uri` - URL to return to after authorization
 - `response_type` - Must be "code"
 - `scope` - Space-separated list of requested permissions
 
 **Optional Parameters:**
+
 - `state` - Random string to prevent CSRF attacks
 - `prompt` - "none", "login", or "consent"
 
 **Example Request:**
+
 ```
 https://api.opossumsearch.com/oauth/authorize?
   client_id=your_client_id&
@@ -45,6 +49,7 @@ POST /oauth/token
 ```
 
 **Required Parameters:**
+
 - `grant_type` - Must be "authorization_code"
 - `code` - The authorization code received
 - `redirect_uri` - Same URI used in authorization
@@ -52,6 +57,7 @@ POST /oauth/token
 - `client_secret` - Your OAuth client secret
 
 **Example Request:**
+
 ```bash
 curl -X POST https://api.opossumsearch.com/oauth/token \
   -d grant_type=authorization_code \
@@ -62,6 +68,7 @@ curl -X POST https://api.opossumsearch.com/oauth/token \
 ```
 
 **Example Response:**
+
 ```json
 {
   "access_token": "access_token_value",
@@ -79,12 +86,14 @@ POST /oauth/token
 ```
 
 **Required Parameters:**
+
 - `grant_type` - Must be "refresh_token"
 - `refresh_token` - The refresh token
 - `client_id` - Your OAuth client ID
 - `client_secret` - Your OAuth client secret
 
 **Example Request:**
+
 ```bash
 curl -X POST https://api.opossumsearch.com/oauth/token \
   -d grant_type=refresh_token \
@@ -95,10 +104,10 @@ curl -X POST https://api.opossumsearch.com/oauth/token \
 
 ## Scopes
 
-| Scope | Description |
-|-------|-------------|
-| read | Read-only access to public data |
-| write | Ability to modify data |
+| Scope | Description                               |
+|-------|-------------------------------------------|
+| read  | Read-only access to public data           |
+| write | Ability to modify data                    |
 | admin | Administrative access (requires approval) |
 
 ## Security Considerations
@@ -113,14 +122,15 @@ curl -X POST https://api.opossumsearch.com/oauth/token \
 
 ### Common Error Responses
 
-| Error Code | Description | Resolution |
-|------------|-------------|------------|
-| invalid_request | Missing required parameter | Check request parameters |
-| invalid_client | Invalid client credentials | Verify client ID and secret |
-| invalid_grant | Invalid authorization code | Request new authorization |
-| invalid_scope | Requested scope not valid | Check scope permissions |
+| Error Code      | Description                | Resolution                  |
+|-----------------|----------------------------|-----------------------------|
+| invalid_request | Missing required parameter | Check request parameters    |
+| invalid_client  | Invalid client credentials | Verify client ID and secret |
+| invalid_grant   | Invalid authorization code | Request new authorization   |
+| invalid_scope   | Requested scope not valid  | Check scope permissions     |
 
 ### Example Error Response:
+
 ```json
 {
   "error": "invalid_request",
@@ -132,6 +142,7 @@ curl -X POST https://api.opossumsearch.com/oauth/token \
 ## Implementation Examples
 
 ### JavaScript/Node.js
+
 ```javascript
 const config = {
   clientId: 'your_client_id',
@@ -166,6 +177,7 @@ async function exchangeCode(code) {
 ```
 
 ### Python
+
 ```python
 import requests
 
@@ -197,3 +209,4 @@ def exchange_code(code):
         }
     )
     return response.json()
+```

@@ -10,7 +10,7 @@
 | Transformers Fallback      | 99.9%         | Monthly            | 24/7           |
 
 !!! note
-    These availability requirements define the target uptime for each service, ensuring a reliable user experience.
+These availability requirements define the target uptime for each service, ensuring a reliable user experience.
 
 ## Performance Requirements
 

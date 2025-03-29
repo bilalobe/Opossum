@@ -2,17 +2,19 @@
 
 ## Overview
 
-Opossum Search integrates with multiple AI model providers to deliver resilient, high-quality responses. This document details the implementation specifics for each supported provider, including authentication, request/response handling, and provider-specific optimizations.
+Opossum Search integrates with multiple AI model providers to deliver resilient, high-quality responses. This document
+details the implementation specifics for each supported provider, including authentication, request/response handling,
+and provider-specific optimizations.
 
 ## Supported Providers
 
 The system currently integrates with these model providers:
 
-| Provider | Type | Primary Use Cases | Integration Type |
-|----------|------|------------------|------------------|
-| Gemini | Cloud API | Advanced reasoning, multimodal | REST API |
-| Ollama | Local deployment | Cost-effective, private deployment | HTTP API |
-| Transformers | Local library | Fallback, specialized models | Direct library |
+| Provider     | Type             | Primary Use Cases                  | Integration Type |
+|--------------|------------------|------------------------------------|------------------|
+| Gemini       | Cloud API        | Advanced reasoning, multimodal     | REST API         |
+| Ollama       | Local deployment | Cost-effective, private deployment | HTTP API         |
+| Transformers | Local library    | Fallback, specialized models       | Direct library   |
 
 ## Gemini Integration
 

@@ -1,24 +1,27 @@
 # NLP Components
 
-The Opossum system uses several Natural Language Processing (NLP) components for different aspects of conversation handling.
+The Opossum system uses several Natural Language Processing (NLP) components for different aspects of conversation
+handling.
 
 ## Sentence Transformers
 
 ### Model Configuration
+
 - Model: `all-MiniLM-L6-v2`
 - Purpose: Semantic similarity and topic detection
 - Implementation: Sentence-transformers library
 
 ### Usage Areas
+
 1. Topic Detection
-   - Embedding generation for topic sentences
-   - Similarity scoring for topic matching
-   - Follow-up question detection
+    - Embedding generation for topic sentences
+    - Similarity scoring for topic matching
+    - Follow-up question detection
 
 2. Message Understanding
-   - User intent classification
-   - Context preservation
-   - Semantic similarity calculations
+    - User intent classification
+    - Context preservation
+    - Semantic similarity calculations
 
 ## Sentiment Analysis
 
@@ -54,6 +57,7 @@ def analyze_message(self, message: str, is_follow_up: bool = False) -> Dict[str,
 ```
 
 ### Metrics Tracked
+
 - Message polarity (-1 to 1)
 - Subjectivity (0 to 1)
 - Engagement trends
@@ -64,14 +68,14 @@ def analyze_message(self, message: str, is_follow_up: bool = False) -> Dict[str,
 Topic detection uses a combination of:
 
 1. Semantic Embeddings
-   - Pre-computed topic embeddings
-   - Real-time message embedding
-   - Cosine similarity matching
+    - Pre-computed topic embeddings
+    - Real-time message embedding
+    - Cosine similarity matching
 
 2. Rule-based Detection
-   - Follow-up indicators
-   - Greeting patterns
-   - Closing phrases
+    - Follow-up indicators
+    - Greeting patterns
+    - Closing phrases
 
 ### Topic Categories
 
@@ -88,11 +92,13 @@ topic_sentences = {
 ## Performance Optimization
 
 ### Caching Strategy
+
 - Topic embeddings pre-computed
 - Sentiment scores cached
 - Recent analyses retained
 
 ### Batch Processing
+
 - Message history analysis
 - Trend calculation
 - Engagement scoring
@@ -112,6 +118,7 @@ graph TD
 ## Error Handling
 
 1. Model Loading
+
 ```python
 try:
     self.model = SentenceTransformer(Config.SENTENCE_TRANSFORMER_MODEL)
@@ -121,6 +128,7 @@ except ImportError:
 ```
 
 2. Embedding Generation
+
 ```python
 try:
     message_embedding = self.model.encode(user_message.lower())
@@ -132,6 +140,7 @@ except Exception as e:
 ## Configuration
 
 Key NLP settings from Config:
+
 ```python
 SENTENCE_TRANSFORMER_MODEL = 'all-MiniLM-L6-v2'
 SIMILARITY_THRESHOLD = 0.35

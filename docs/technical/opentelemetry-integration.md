@@ -2,7 +2,9 @@
 
 ## 1. Overview
 
-Opossum Search implements comprehensive observability using OpenTelemetry to monitor application performance, track request flows, and diagnose issues across its distributed architecture. This integration enables detailed visibility into system behavior, performance bottlenecks, and service dependencies.
+Opossum Search implements comprehensive observability using OpenTelemetry to monitor application performance, track
+request flows, and diagnose issues across its distributed architecture. This integration enables detailed visibility
+into system behavior, performance bottlenecks, and service dependencies.
 
 ## 2. OpenTelemetry Configuration
 
@@ -403,4 +405,5 @@ service:
       exporters: [prometheus, logging]
 ```
 
-The OpenTelemetry integration provides comprehensive observability for Opossum Search, enabling performance monitoring, troubleshooting, and service dependency tracking across the distributed architecture.
+The OpenTelemetry integration provides comprehensive observability for Opossum Search, enabling performance monitoring,
+troubleshooting, and service dependency tracking across the distributed architecture.

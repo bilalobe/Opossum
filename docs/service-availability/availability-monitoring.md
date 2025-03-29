@@ -92,4 +92,4 @@ class ServiceAvailability:
 | Service Health Check | On-demand | Current status of all services                      | API endpoint (planned) |
 
 !!! note
-    Regularly review the Availability Summary reports to identify trends and potential issues with service availability.
+Regularly review the Availability Summary reports to identify trends and potential issues with service availability.

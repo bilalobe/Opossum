@@ -1,6 +1,7 @@
 # Compliance and Usage Terms
 
-This document outlines how Opossum Search complies with relevant service usage terms, licensing requirements, and development guidelines.
+This document outlines how Opossum Search complies with relevant service usage terms, licensing requirements, and
+development guidelines.
 
 ## API Usage Compliance
 
@@ -15,11 +16,11 @@ Opossum Search maintains compliance with Google's AI API terms of service throug
 
 ### Model Usage Terms
 
-| Model Provider | Compliance Mechanism | Implementation |
-|----------------|----------------------|----------------|
-| Google Gemini  | Rate limiting, quota tracking | `record_gemini_usage()`
-| Ollama         | Local resource management | Local service monitoring |
-| Transformers   | License compliance (Apache 2.0) | Package attribution |
+| Model Provider | Compliance Mechanism            | Implementation           |
+|----------------|---------------------------------|--------------------------|
+| Google Gemini  | Rate limiting, quota tracking   | `record_gemini_usage()`  
+| Ollama         | Local resource management       | Local service monitoring |
+| Transformers   | License compliance (Apache 2.0) | Package attribution      |
 
 ## Privacy and Data Handling
 

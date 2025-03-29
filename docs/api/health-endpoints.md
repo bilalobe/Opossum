@@ -2,7 +2,12 @@
 
 ## Overview
 
-Opossum Search provides dedicated health check endpoints to monitor the status and availability of various system components. These endpoints are essential for monitoring, alerting, and ensuring service reliability. For a list of available API routes, see [API Routes](routes.md). For detailed information about request and response formats, see [Request/Response Documentation](request-response.md). For error code details, see [Error Codes](error-codes.md). Information on API usage limits can be found in [Rate Limits](rate-limits.md). To learn about real-time notifications, refer to [Webhooks](webhooks.md).
+Opossum Search provides dedicated health check endpoints to monitor the status and availability of various system
+components. These endpoints are essential for monitoring, alerting, and ensuring service reliability. For a list of
+available API routes, see [API Routes](routes.md). For detailed information about request and response formats,
+see [Request/Response Documentation](request-response.md). For error code details, see [Error Codes](error-codes.md).
+Information on API usage limits can be found in [Rate Limits](rate-limits.md). To learn about real-time notifications,
+refer to [Webhooks](webhooks.md).
 
 ## Base Health Endpoint
 
@@ -32,6 +37,7 @@ Provides an overall status of the Opossum Search system.
 ```
 
 **Possible Status Values**:
+
 - `healthy`: All systems operating normally
 - `degraded`: System is operating with reduced capabilities
 - `unhealthy`: System is experiencing significant issues
@@ -181,6 +187,7 @@ GET /health/deep
 ```
 
 This performs thorough testing of each component, including:
+
 - Database query execution
 - Cache read/write operations
 - Model inference tests
@@ -309,23 +316,23 @@ Returns a status page compatible format:
 
 1. **Check Frequency**: Poll the health endpoint every 30-60 seconds
 2. **Alert Thresholds**: Set up alerts for:
-   - Status changes from `healthy` to `degraded` or `unhealthy`
-   - Component status changes
-   - Latency increases beyond thresholds
-   - Error rate increases
+    - Status changes from `healthy` to `degraded` or `unhealthy`
+    - Component status changes
+    - Latency increases beyond thresholds
+    - Error rate increases
 3. **Dashboard Visualization**: Create dashboards showing:
-   - Overall system health over time
-   - Component-specific health metrics
-   - Correlation between health and user-facing metrics
+    - Overall system health over time
+    - Component-specific health metrics
+    - Correlation between health and user-facing metrics
 
 ### Response Codes
 
-| HTTP Status | Meaning |
-|-------------|---------|
-| 200 | System is healthy |
-| 200 | System is degraded (check response body) |
-| 503 | System is unhealthy |
-| 500 | Health check itself failed |
+| HTTP Status | Meaning                                  |
+|-------------|------------------------------------------|
+| 200         | System is healthy                        |
+| 200         | System is degraded (check response body) |
+| 503         | System is unhealthy                      |
+| 500         | Health check itself failed               |
 
 ## Custom Health Checks
 
@@ -356,12 +363,12 @@ POST /health/custom
 
 Health endpoints have separate rate limits to ensure availability during incidents:
 
-| Endpoint | Unauthenticated Requests | Authenticated Requests |
-|----------|--------------------------|------------------------|
-| `/health` | 60 rpm | 300 rpm |
-| `/health/{component}` | 20 rpm | 100 rpm |
-| `/health/deep` | Not available | 10 rpm |
-| `/metrics` | Not available | 60 rpm |
+| Endpoint              | Unauthenticated Requests | Authenticated Requests |
+|-----------------------|--------------------------|------------------------|
+| `/health`             | 60 rpm                   | 300 rpm                |
+| `/health/{component}` | 20 rpm                   | 100 rpm                |
+| `/health/deep`        | Not available            | 10 rpm                 |
+| `/metrics`            | Not available            | 60 rpm                 |
 
 rpm = requests per minute
 
@@ -369,12 +376,12 @@ rpm = requests per minute
 
 Health check data is retained according to the following schedule:
 
-| Data Type | Retention Period |
-|-----------|------------------|
-| Status changes | 90 days |
-| Component metrics | 30 days |
-| Raw health check responses | 7 days |
-| Detailed diagnostic logs | 3 days |
+| Data Type                  | Retention Period |
+|----------------------------|------------------|
+| Status changes             | 90 days          |
+| Component metrics          | 30 days          |
+| Raw health check responses | 7 days           |
+| Detailed diagnostic logs   | 3 days           |
 
 ## Maintenance Mode
 

@@ -1,12 +1,14 @@
 # Response Generation
 
-The response generation system combines sentiment analysis, conversation state, and model backend selection to generate contextually appropriate responses.
+The response generation system combines sentiment analysis, conversation state, and model backend selection to generate
+contextually appropriate responses.
 
 ## Core Components
 
 ### ResponseGenerator
 
 The `ResponseGenerator` class orchestrates:
+
 - Topic-aware prompt creation
 - Sentiment-based response adjustment
 - Engagement monitoring and reengagement
@@ -44,12 +46,14 @@ reengagement_prompts = {
 ### Prompt Creation
 
 The system builds prompts that include:
+
 1. Current conversation stage
 2. Recent message history
 3. User sentiment analysis
 4. Topic relevance scores
 
 Example prompt structure:
+
 ```
 Current topic: {conversation_state.current_stage}
 User sentiment: {sentiment_analysis['sentiment']['polarity']}
@@ -70,33 +74,35 @@ User message: {user_message}
 The response generator works with multiple model backends:
 
 1. **Gemini Backend**
-   - High-capability responses
-   - Multimodal processing
-   - Advanced reasoning
+    - High-capability responses
+    - Multimodal processing
+    - Advanced reasoning
 
 2. **Ollama Backend**
-   - Local processing
-   - Custom model support
-   - Efficient response generation
+    - Local processing
+    - Custom model support
+    - Efficient response generation
 
 3. **Transformers Backend**
-   - Fallback capability
-   - Offline operation
-   - Basic response generation
+    - Fallback capability
+    - Offline operation
+    - Basic response generation
 
 ## Performance Considerations
 
 ### Caching Strategy
+
 - Caches complete responses
 - Stores sentiment analysis
 - Preserves context windows
 
 ### Response Times
-| Operation | Target Time |
-|-----------|-------------|
-| Basic Response | < 1s |
-| With Context | < 2s |
-| With Image | < 3s |
+
+| Operation      | Target Time |
+|----------------|-------------|
+| Basic Response | < 1s        |
+| With Context   | < 2s        |
+| With Image     | < 3s        |
 
 ## Error Handling
 
@@ -110,13 +116,14 @@ The response generator works with multiple model backends:
    ```
 
 2. **Fallback Responses**
-   - Default to simpler responses
-   - Preserve conversation context
-   - Maintain user engagement
+    - Default to simpler responses
+    - Preserve conversation context
+    - Maintain user engagement
 
 ## Monitoring and Metrics
 
 The system tracks:
+
 - Response generation times
 - Engagement success rates
 - Sentiment trends

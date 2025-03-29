@@ -2,11 +2,14 @@
 
 ## 1. Overview
 
-Opossum Search implements a sophisticated multi-level caching system using Redis to optimize performance, reduce duplicate computation, and manage distributed state across the application. This architecture supports high throughput while minimizing latency and external API usage.
+Opossum Search implements a sophisticated multi-level caching system using Redis to optimize performance, reduce
+duplicate computation, and manage distributed state across the application. This architecture supports high throughput
+while minimizing latency and external API usage.
 
 > **Related Documentation:**
 > - [Technical: Hybrid Model Selection](./hybrid-model-selection.md) - Cache integration with model selection
-> - [Service Availability: Rate Limiting](../service-availability/rate-limiting-throttling.md) - Redis-based rate limiting implementation
+> - [Service Availability: Rate Limiting](../service-availability/rate-limiting-throttling.md) - Redis-based rate
+    limiting implementation
 
 ## 2. Redis Configuration
 
@@ -73,11 +76,11 @@ async def cache_response(self, query, response, backend_name):
 
 #### TTL Strategy
 
-| Cache Type | TTL | Rationale |
-|------------|-----|-----------|
-| Simple responses | 600s (10m) | High reuse value, low volatility |
-| Complex responses | 300s (5m) | May become outdated faster |
-| Image processing | 1800s (30m) | High computation cost, stable results |
+| Cache Type        | TTL         | Rationale                             |
+|-------------------|-------------|---------------------------------------|
+| Simple responses  | 600s (10m)  | High reuse value, low volatility      |
+| Complex responses | 300s (5m)   | May become outdated faster            |
+| Image processing  | 1800s (30m) | High computation cost, stable results |
 
 ### 3.2 Service Availability Cache
 
@@ -290,7 +293,8 @@ async def invalidate_model_cache(self, model_name=None):
 # maxmemory-policy allkeys-lru
 ```
 
-The Redis instance is configured with a memory limit and LRU eviction policy to automatically manage memory usage when limits are reached.
+The Redis instance is configured with a memory limit and LRU eviction policy to automatically manage memory usage when
+limits are reached.
 
 ## 7. Performance Considerations
 
@@ -310,7 +314,8 @@ async def batch_update_metrics(self, metrics_list):
 
 ### 7.2 Key Expiration Strategy
 
-Rather than running manual cleanup jobs, the system relies on Redis TTL (Time-To-Live) expirations to automatically manage cache size and freshness. Keys are assigned appropriate TTLs based on data volatility and reuse patterns.
+Rather than running manual cleanup jobs, the system relies on Redis TTL (Time-To-Live) expirations to automatically
+manage cache size and freshness. Keys are assigned appropriate TTLs based on data volatility and reuse patterns.
 
 ## 8. Redis High Availability Configuration
 
@@ -320,4 +325,5 @@ For production deployments, Redis is configured with:
 - Periodic RDB snapshots for persistence
 - Monitoring integration with system alerts
 
-This Redis caching architecture enables Opossum Search to maintain high performance while minimizing external API usage and providing resilience against backend service disruptions.
+This Redis caching architecture enables Opossum Search to maintain high performance while minimizing external API usage
+and providing resilience against backend service disruptions.

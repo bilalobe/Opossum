@@ -2,28 +2,34 @@
 
 ## Overview
 
-Opossum Search provides webhooks to notify your application about events as they happen. This document covers webhook configuration, event types, payload format, and best practices for processing webhook events. For a list of available API routes, see [API Routes](routes.md). For detailed information about request and response formats, see [Request/Response Documentation](request-response.md). For error code details, see [Error Codes](error-codes.md). Information on API usage limits can be found in [Rate Limits](rate-limits.md). For system status and component health, see [Health Endpoints](health-endpoints.md).
+Opossum Search provides webhooks to notify your application about events as they happen. This document covers webhook
+configuration, event types, payload format, and best practices for processing webhook events. For a list of available
+API routes, see [API Routes](routes.md). For detailed information about request and response formats,
+see [Request/Response Documentation](request-response.md). For error code details, see [Error Codes](error-codes.md).
+Information on API usage limits can be found in [Rate Limits](rate-limits.md). For system status and component health,
+see [Health Endpoints](health-endpoints.md).
 
 ## What are Webhooks?
 
-Webhooks are HTTP callbacks that allow Opossum Search to send real-time notifications to your application when specific events occur. Rather than polling the API for updates, your application can receive automatic notifications.
+Webhooks are HTTP callbacks that allow Opossum Search to send real-time notifications to your application when specific
+events occur. Rather than polling the API for updates, your application can receive automatic notifications.
 
 ## Webhook Events
 
 Opossum Search supports the following webhook event types:
 
-| Event Type | Description |
-|------------|-------------|
-| `search.completed` | A search operation has completed |
-| `analysis.completed` | An image or content analysis has completed |
-| `conversation.updated` | A conversation has been updated with new messages |
-| `model.status_changed` | An AI model's status has changed (online/offline) |
-| `system.status_changed` | The system status has changed |
-| `job.completed` | A long-running job has completed |
-| `error.threshold_exceeded` | Error rate has exceeded configured threshold |
-| `cache.invalidated` | Cache for specified resources has been invalidated |
-| `quota.threshold_reached` | Usage quota has reached a configured threshold |
-| `user.action_required` | User action is required (e.g., payment, verification) |
+| Event Type                 | Description                                           |
+|----------------------------|-------------------------------------------------------|
+| `search.completed`         | A search operation has completed                      |
+| `analysis.completed`       | An image or content analysis has completed            |
+| `conversation.updated`     | A conversation has been updated with new messages     |
+| `model.status_changed`     | An AI model's status has changed (online/offline)     |
+| `system.status_changed`    | The system status has changed                         |
+| `job.completed`            | A long-running job has completed                      |
+| `error.threshold_exceeded` | Error rate has exceeded configured threshold          |
+| `cache.invalidated`        | Cache for specified resources has been invalidated    |
+| `quota.threshold_reached`  | Usage quota has reached a configured threshold        |
+| `user.action_required`     | User action is required (e.g., payment, verification) |
 
 ## Setting Up Webhooks
 
@@ -33,10 +39,10 @@ Opossum Search supports the following webhook event types:
 2. Go to **Settings** > **Webhooks**
 3. Click **Add Endpoint**
 4. Configure your webhook:
-   - Endpoint URL: Your server's URL to receive webhook events
-   - Events: Select which events to subscribe to
-   - Secret: Generate a secret to verify webhook payloads
-   - Description: Optional description for your reference
+    - Endpoint URL: Your server's URL to receive webhook events
+    - Events: Select which events to subscribe to
+    - Secret: Generate a secret to verify webhook payloads
+    - Description: Optional description for your reference
 
 ### API Configuration
 
@@ -269,11 +275,11 @@ DELETE /webhooks/{webhook_id}
 
 ## Webhook Quotas and Limits
 
-| Plan | Max Webhook Endpoints | Max Events per Minute | Event Retention |
-|------|----------------------|---------------------|-----------------|
-| Basic | 5 | 60 | 7 days |
-| Professional | 20 | 300 | 30 days |
-| Enterprise | 100 | 1,200 | 90 days |
+| Plan         | Max Webhook Endpoints | Max Events per Minute | Event Retention |
+|--------------|-----------------------|-----------------------|-----------------|
+| Basic        | 5                     | 60                    | 7 days          |
+| Professional | 20                    | 300                   | 30 days         |
+| Enterprise   | 100                   | 1,200                 | 90 days         |
 
 ## Troubleshooting
 

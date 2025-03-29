@@ -2,11 +2,14 @@
 
 ## 1. Overview
 
-Opossum Search uses GraphQL as its primary API layer, providing a flexible, type-safe interface for clients to interact with the system. The GraphQL implementation leverages Ariadne for schema-first development and includes advanced features such as rate limiting, request costing, authentication, and integration with Apollo Studio.
+Opossum Search uses GraphQL as its primary API layer, providing a flexible, type-safe interface for clients to interact
+with the system. The GraphQL implementation leverages Ariadne for schema-first development and includes advanced
+features such as rate limiting, request costing, authentication, and integration with Apollo Studio.
 
 > **Related Documentation:**
 > - [GraphQL API: Getting Started](../api/getting-started.md) - User guide for integrating with the GraphQL API
-> - [Service Availability: Rate Limiting](../service-availability/rate-limiting-throttling.md) - How rate limiting is implemented at the API level
+> - [Service Availability: Rate Limiting](../service-availability/rate-limiting-throttling.md) - How rate limiting is
+    implemented at the API level
 > - [API Reference: Routes](../api/routes.md) - REST API routes that complement the GraphQL API
 
 ## 2. Schema Design
@@ -562,4 +565,6 @@ async def resolve_chat(_, info, message, conversation_id=None):
     }
 ```
 
-The GraphQL API serves as the primary interface for Opossum Search, providing a flexible, secure, and performant way for clients to interact with the system. The schema-first approach with Ariadne enables clean separation of concerns, while directives handle cross-cutting concerns like authentication, rate limiting, and caching.
+The GraphQL API serves as the primary interface for Opossum Search, providing a flexible, secure, and performant way for
+clients to interact with the system. The schema-first approach with Ariadne enables clean separation of concerns, while
+directives handle cross-cutting concerns like authentication, rate limiting, and caching.

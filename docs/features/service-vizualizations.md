@@ -2,7 +2,9 @@
 
 ## Overview
 
-Opossum Search provides dynamic visualizations of system services, performance metrics, and operational status through its SVG generation capabilities. These visualizations help users and administrators understand system behavior, monitor performance, and diagnose issues through intuitive graphical representations.
+Opossum Search provides dynamic visualizations of system services, performance metrics, and operational status through
+its SVG generation capabilities. These visualizations help users and administrators understand system behavior, monitor
+performance, and diagnose issues through intuitive graphical representations.
 
 ## Visualization Types
 
@@ -232,4 +234,5 @@ Upcoming visualization features include:
 
 ---
 
-Service visualizations are designed to provide intuitive understanding of complex system behavior, helping both developers and administrators maintain optimal performance and quickly diagnose issues when they arise.
+Service visualizations are designed to provide intuitive understanding of complex system behavior, helping both
+developers and administrators maintain optimal performance and quickly diagnose issues when they arise.

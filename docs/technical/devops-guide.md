@@ -2,19 +2,20 @@
 
 ## 1. Deployment Overview
 
-This guide outlines the processes and best practices for deploying, configuring, monitoring, and maintaining Opossum Search in various environments.
+This guide outlines the processes and best practices for deploying, configuring, monitoring, and maintaining Opossum
+Search in various environments.
 
 ## 2. Environment Setup
 
 ### 2.1 System Requirements
 
-| Component | Minimum | Recommended | Notes |
-|-----------|---------|-------------|-------|
-| CPU | 2 cores | 4+ cores | 8+ cores for high-volume production |
-| RAM | 8GB | 16GB | 32GB+ for multiple local models |
-| Storage | 5GB | 20GB | SSD recommended for model loading |
-| Network | 10Mbps | 100Mbps+ | Reliable connection for external APIs |
-| GPU | None | NVIDIA with 8GB+ VRAM | For [Ollama](https://ollama.ai/) performance |
+| Component | Minimum | Recommended           | Notes                                        |
+|-----------|---------|-----------------------|----------------------------------------------|
+| CPU       | 2 cores | 4+ cores              | 8+ cores for high-volume production          |
+| RAM       | 8GB     | 16GB                  | 32GB+ for multiple local models              |
+| Storage   | 5GB     | 20GB                  | SSD recommended for model loading            |
+| Network   | 10Mbps  | 100Mbps+              | Reliable connection for external APIs        |
+| GPU       | None    | NVIDIA with 8GB+ VRAM | For [Ollama](https://ollama.ai/) performance |
 
 ### 2.2 Software Dependencies
 
@@ -38,11 +39,11 @@ sudo apt-get install -y nvidia-driver-535 nvidia-cuda-toolkit
 
 ### 2.3 Environment Configurations
 
-| Environment | Description | Use Case |
-|-------------|-------------|----------|
-| `development` | Local setup for developers | Feature development, testing |
-| `staging` | Production-like environment | Integration testing, pre-release validation |
-| `production` | Live deployment | End-user service |
+| Environment   | Description                 | Use Case                                    |
+|---------------|-----------------------------|---------------------------------------------|
+| `development` | Local setup for developers  | Feature development, testing                |
+| `staging`     | Production-like environment | Integration testing, pre-release validation |
+| `production`  | Live deployment             | End-user service                            |
 
 ## 3. Installation Procedures
 
@@ -197,15 +198,15 @@ python -m app
 
 ### 4.1 Environment Variables
 
-| Variable | Purpose | Example |
-|----------|---------|---------|
-| `ENV` | Deployment environment | `production` |
-| `DEBUG` | Enable debug mode | `False` |
-| `GEMINI_API_KEY` | API key for [Gemini](https://ai.google.dev/) | `your-api-key` |
-| `REDIS_HOST` | [Redis](https://redis.io/) server hostname | `redis` |
-| `REDIS_PORT` | [Redis](https://redis.io/) server port | `6379` |
-| `REDIS_PASSWORD` | [Redis](https://redis.io/) password | `secure-password` |
-| `OLLAMA_BASE_URL` | [Ollama](https://ollama.ai/) server URL | `http://ollama:11434` |
+| Variable                      | Purpose                                              | Example                      |
+|-------------------------------|------------------------------------------------------|------------------------------|
+| `ENV`                         | Deployment environment                               | `production`                 |
+| `DEBUG`                       | Enable debug mode                                    | `False`                      |
+| `GEMINI_API_KEY`              | API key for [Gemini](https://ai.google.dev/)         | `your-api-key`               |
+| `REDIS_HOST`                  | [Redis](https://redis.io/) server hostname           | `redis`                      |
+| `REDIS_PORT`                  | [Redis](https://redis.io/) server port               | `6379`                       |
+| `REDIS_PASSWORD`              | [Redis](https://redis.io/) password                  | `secure-password`            |
+| `OLLAMA_BASE_URL`             | [Ollama](https://ollama.ai/) server URL              | `http://ollama:11434`        |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | [OpenTelemetry](https://opentelemetry.io/) collector | `http://otel-collector:4318` |
 
 ### 4.2 Configuration Files
@@ -613,19 +614,19 @@ def optimize_for_environment():
 
 ### 9.1 Service Unavailability
 
-| Issue | Diagnosis | Resolution |
-|-------|-----------|------------|
-| [Gemini API](https://ai.google.dev/) unavailable | Check API key validity and rate limits | Verify API key and check Google Cloud console for quota |
-| [Ollama](https://ollama.ai/) service down | Check logs with `docker logs ollama` | Restart service and verify model availability |
-| [Redis](https://redis.io/) connection error | Check [Redis](https://redis.io/) logs and connectivity | Verify [Redis](https://redis.io/) is running and properly configured |
+| Issue                                            | Diagnosis                                              | Resolution                                                           |
+|--------------------------------------------------|--------------------------------------------------------|----------------------------------------------------------------------|
+| [Gemini API](https://ai.google.dev/) unavailable | Check API key validity and rate limits                 | Verify API key and check Google Cloud console for quota              |
+| [Ollama](https://ollama.ai/) service down        | Check logs with `docker logs ollama`                   | Restart service and verify model availability                        |
+| [Redis](https://redis.io/) connection error      | Check [Redis](https://redis.io/) logs and connectivity | Verify [Redis](https://redis.io/) is running and properly configured |
 
 ### 9.2 Performance Issues
 
-| Issue | Diagnosis | Resolution |
-|-------|-----------|------------|
-| High response time | Check request concurrency and model performance | Scale horizontally and optimize model selection weights |
-| Memory leaks | Monitor memory usage over time | Implement proper garbage collection and restart services |
-| Slow image processing | Check image size and transformation pipeline | Optimize image processing parameters and caching |
+| Issue                 | Diagnosis                                       | Resolution                                               |
+|-----------------------|-------------------------------------------------|----------------------------------------------------------|
+| High response time    | Check request concurrency and model performance | Scale horizontally and optimize model selection weights  |
+| Memory leaks          | Monitor memory usage over time                  | Implement proper garbage collection and restart services |
+| Slow image processing | Check image size and transformation pipeline    | Optimize image processing parameters and caching         |
 
 ### 9.3 Debug Commands
 
@@ -694,4 +695,6 @@ spec:
               number: 8000
 ```
 
-This Deployment & Operations Guide provides comprehensive instructions for deploying, configuring, monitoring, and maintaining the Opossum Search platform across various environments. Follow these best practices to ensure reliable operation and optimal performance of your deployment.
+This Deployment & Operations Guide provides comprehensive instructions for deploying, configuring, monitoring, and
+maintaining the Opossum Search platform across various environments. Follow these best practices to ensure reliable
+operation and optimal performance of your deployment.

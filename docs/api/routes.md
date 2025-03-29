@@ -1,6 +1,9 @@
 # API Routes Documentation
 
-For detailed information about request and response formats, see [Request/Response Documentation](request-response.md). For error code details, see [Error Codes](error-codes.md). Information on API usage limits can be found in [Rate Limits](rate-limits.md). To learn about real-time notifications, refer to [Webhooks](webhooks.md). For system status and component health, see [Health Endpoints](health-endpoints.md).
+For detailed information about request and response formats, see [Request/Response Documentation](request-response.md).
+For error code details, see [Error Codes](error-codes.md). Information on API usage limits can be found
+in [Rate Limits](rate-limits.md). To learn about real-time notifications, refer to [Webhooks](webhooks.md). For system
+status and component health, see [Health Endpoints](health-endpoints.md).
 
 ## Base URL
 
@@ -13,6 +16,7 @@ https://api.opossumsearch.com/v1
 ## Authentication
 
 Most endpoints require authentication via one of these methods:
+
 - API key (passed as `X-API-Key` header)
 - Bearer token (passed as `Authorization: Bearer <token>` header)
 - OAuth 2.0 (for user-authenticated requests)
@@ -30,6 +34,7 @@ GET /search
 Performs a search using specified parameters.
 
 **Query Parameters:**
+
 - `q` (required): The search query text
 - `model` (optional): Specific model to use ("gemini", "ollama", etc.)
 - `mode` (optional): Search mode ("accurate", "creative", "balanced")
@@ -37,6 +42,7 @@ Performs a search using specified parameters.
 - `include_images` (optional): Whether to allow image results (default: false)
 
 **Example Request:**
+
 ```
 GET /search?q=how%20do%20opossums%20sleep&model=gemini&mode=accurate&limit=5
 ```
@@ -50,6 +56,7 @@ POST /multi-search
 Performs multiple searches in a single request.
 
 **Request Body:**
+
 ```json
 {
   "searches": [
@@ -78,10 +85,12 @@ POST /analyze-image
 Analyzes the content of an image.
 
 **Request Body:**
+
 - Multipart form with `image` field containing the image file
 - Additional parameters as form fields
 
 **Example Request:**
+
 ```
 POST /analyze-image
 Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
@@ -109,6 +118,7 @@ POST /conversation
 Starts a new conversation session.
 
 **Request Body:**
+
 ```json
 {
   "initial_message": "Tell me about opossums",
@@ -128,6 +138,7 @@ POST /conversation/{conversation_id}/message
 Adds a message to an existing conversation.
 
 **Request Body:**
+
 ```json
 {
   "message": "How long do they live?",
@@ -146,6 +157,7 @@ GET /conversations
 Lists all conversations for the authenticated user.
 
 **Query Parameters:**
+
 - `limit` (optional): Maximum number of conversations (default: 20)
 - `offset` (optional): Pagination offset (default: 0)
 - `status` (optional): Filter by status ("active", "archived")
@@ -161,6 +173,7 @@ POST /generate-svg
 Generates an SVG visualization based on provided data.
 
 **Request Body:**
+
 ```json
 {
   "visualization_type": "data_chart",
@@ -204,6 +217,7 @@ PATCH /config
 Updates system configuration parameters (admin only).
 
 **Request Body:**
+
 ```json
 {
   "cache": {

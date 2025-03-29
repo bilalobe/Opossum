@@ -2,7 +2,9 @@
 
 ## Overview
 
-The Opossum Search model integration system provides a flexible configuration framework that allows fine-grained control over model behavior, performance characteristics, and fallback mechanisms. This document details the configuration options available for each model provider and explains how to optimize settings for different deployment scenarios.
+The Opossum Search model integration system provides a flexible configuration framework that allows fine-grained control
+over model behavior, performance characteristics, and fallback mechanisms. This document details the configuration
+options available for each model provider and explains how to optimize settings for different deployment scenarios.
 
 ## Configuration Structure
 
@@ -35,15 +37,15 @@ model_integration:
 
 These settings apply to the entire model integration system:
 
-| Option | Description | Default | Valid Values |
-|--------|-------------|---------|-------------|
-| `default_backend` | Primary backend to use when no specific selection is made | `"gemini"` | `"gemini"`, `"ollama"`, `"transformers"` |
-| `enable_fallbacks` | Whether to use fallback backends when primary fails | `true` | `true`, `false` |
-| `request_timeout` | Global request timeout in seconds | `15` | Positive integer |
-| `max_retries` | Maximum number of retries for transient errors | `2` | Non-negative integer |
-| `telemetry_enabled` | Whether to collect usage telemetry | `true` | `true`, `false` |
-| `cache_responses` | Whether to cache responses | `true` | `true`, `false` |
-| `cache_ttl` | Time-to-live for cached responses in seconds | `3600` | Positive integer |
+| Option              | Description                                               | Default    | Valid Values                             |
+|---------------------|-----------------------------------------------------------|------------|------------------------------------------|
+| `default_backend`   | Primary backend to use when no specific selection is made | `"gemini"` | `"gemini"`, `"ollama"`, `"transformers"` |
+| `enable_fallbacks`  | Whether to use fallback backends when primary fails       | `true`     | `true`, `false`                          |
+| `request_timeout`   | Global request timeout in seconds                         | `15`       | Positive integer                         |
+| `max_retries`       | Maximum number of retries for transient errors            | `2`        | Non-negative integer                     |
+| `telemetry_enabled` | Whether to collect usage telemetry                        | `true`     | `true`, `false`                          |
+| `cache_responses`   | Whether to cache responses                                | `true`     | `true`, `false`                          |
+| `cache_ttl`         | Time-to-live for cached responses in seconds              | `3600`     | Positive integer                         |
 
 ## Provider-Specific Configuration
 
@@ -72,17 +74,17 @@ gemini:
 
 #### Gemini Configuration Options
 
-| Option | Description | Default | Valid Values |
-|--------|-------------|---------|-------------|
-| `api_key` | Gemini API key | Required | Valid API key string |
-| `model` | Gemini model to use | `"gemini-pro"` | `"gemini-pro"`, `"gemini-pro-vision"` |
-| `temperature` | Randomness in generation | `0.7` | `0.0` to `1.0` |
-| `top_p` | Nucleus sampling parameter | `0.95` | `0.0` to `1.0` |
-| `top_k` | Number of top tokens to consider | `40` | Positive integer |
-| `max_tokens` | Maximum tokens to generate | `800` | Positive integer |
-| `timeout` | Request timeout in seconds | `10` | Positive integer |
-| `safety_settings` | Content filtering settings | (default values) | See safety levels |
-| `quota_management` | Settings to manage API quota | (default values) | See quota options |
+| Option             | Description                      | Default          | Valid Values                          |
+|--------------------|----------------------------------|------------------|---------------------------------------|
+| `api_key`          | Gemini API key                   | Required         | Valid API key string                  |
+| `model`            | Gemini model to use              | `"gemini-pro"`   | `"gemini-pro"`, `"gemini-pro-vision"` |
+| `temperature`      | Randomness in generation         | `0.7`            | `0.0` to `1.0`                        |
+| `top_p`            | Nucleus sampling parameter       | `0.95`           | `0.0` to `1.0`                        |
+| `top_k`            | Number of top tokens to consider | `40`             | Positive integer                      |
+| `max_tokens`       | Maximum tokens to generate       | `800`            | Positive integer                      |
+| `timeout`          | Request timeout in seconds       | `10`             | Positive integer                      |
+| `safety_settings`  | Content filtering settings       | (default values) | See safety levels                     |
+| `quota_management` | Settings to manage API quota     | (default values) | See quota options                     |
 
 ### Ollama Configuration
 
@@ -109,26 +111,26 @@ ollama:
 
 #### Ollama Configuration Options
 
-| Option | Description | Default | Valid Values |
-|--------|-------------|---------|-------------|
-| `host` | Ollama server hostname | `"localhost"` | Valid hostname or IP |
-| `port` | Ollama server port | `11434` | Valid port number |
-| `timeout` | Request timeout in seconds | `15` | Positive integer |
-| `models` | List of models to use | `[{"name": "llama2", "default": true}]` | Array of model configs |
-| `concurrency` | Maximum concurrent requests | `2` | Positive integer |
-| `startup_timeout` | Time to wait for server startup | `60` | Positive integer |
-| `health_check_interval` | Time between health checks in seconds | `300` | Positive integer |
+| Option                  | Description                           | Default                                 | Valid Values           |
+|-------------------------|---------------------------------------|-----------------------------------------|------------------------|
+| `host`                  | Ollama server hostname                | `"localhost"`                           | Valid hostname or IP   |
+| `port`                  | Ollama server port                    | `11434`                                 | Valid port number      |
+| `timeout`               | Request timeout in seconds            | `15`                                    | Positive integer       |
+| `models`                | List of models to use                 | `[{"name": "llama2", "default": true}]` | Array of model configs |
+| `concurrency`           | Maximum concurrent requests           | `2`                                     | Positive integer       |
+| `startup_timeout`       | Time to wait for server startup       | `60`                                    | Positive integer       |
+| `health_check_interval` | Time between health checks in seconds | `300`                                   | Positive integer       |
 
 For each model in the `models` array:
 
-| Option | Description | Default | Valid Values |
-|--------|-------------|---------|-------------|
-| `name` | Model name | Required | Valid Ollama model name |
-| `default` | Whether this is the default model | `false` | `true`, `false` |
-| `temperature` | Generation temperature | `0.7` | `0.0` to `1.0` |
-| `context_window` | Context window size | Model-dependent | Positive integer |
-| `repeat_penalty` | Penalty for repeated tokens | `1.1` | Positive float |
-| `top_p` | Nucleus sampling parameter | `0.9` | `0.0` to `1.0` |
+| Option           | Description                       | Default         | Valid Values            |
+|------------------|-----------------------------------|-----------------|-------------------------|
+| `name`           | Model name                        | Required        | Valid Ollama model name |
+| `default`        | Whether this is the default model | `false`         | `true`, `false`         |
+| `temperature`    | Generation temperature            | `0.7`           | `0.0` to `1.0`          |
+| `context_window` | Context window size               | Model-dependent | Positive integer        |
+| `repeat_penalty` | Penalty for repeated tokens       | `1.1`           | Positive float          |
+| `top_p`          | Nucleus sampling parameter        | `0.9`           | `0.0` to `1.0`          |
 
 ### Transformers Configuration
 
@@ -158,26 +160,26 @@ transformers:
 
 #### Transformers Configuration Options
 
-| Option | Description | Default | Valid Values |
-|--------|-------------|---------|-------------|
-| `model_path` | Path to store model files | `"./models/local"` | Valid directory path |
-| `default_model` | Default model identifier | `"microsoft/phi-2"` | Valid model ID or name |
-| `device` | Compute device to use | `"auto"` | `"auto"`, `"cpu"`, `"cuda"`, `"mps"` |
-| `quantization` | Quantization level | `"int8"` | `"none"`, `"int8"`, `"int4"` |
-| `models` | List of models to use | (default values) | Array of model configs |
-| `max_memory` | Maximum memory allocation | `"4GB"` | Memory size string |
-| `low_memory_mode` | Optimize for low memory | `false` | `true`, `false` |
-| `cpu_threads` | CPU threads for computation | `4` | Positive integer |
-| `generate_params` | Generation parameters | (default values) | See generation options |
+| Option            | Description                 | Default             | Valid Values                         |
+|-------------------|-----------------------------|---------------------|--------------------------------------|
+| `model_path`      | Path to store model files   | `"./models/local"`  | Valid directory path                 |
+| `default_model`   | Default model identifier    | `"microsoft/phi-2"` | Valid model ID or name               |
+| `device`          | Compute device to use       | `"auto"`            | `"auto"`, `"cpu"`, `"cuda"`, `"mps"` |
+| `quantization`    | Quantization level          | `"int8"`            | `"none"`, `"int8"`, `"int4"`         |
+| `models`          | List of models to use       | (default values)    | Array of model configs               |
+| `max_memory`      | Maximum memory allocation   | `"4GB"`             | Memory size string                   |
+| `low_memory_mode` | Optimize for low memory     | `false`             | `true`, `false`                      |
+| `cpu_threads`     | CPU threads for computation | `4`                 | Positive integer                     |
+| `generate_params` | Generation parameters       | (default values)    | See generation options               |
 
 For each model in the `models` array:
 
-| Option | Description | Default | Valid Values |
-|--------|-------------|---------|-------------|
-| `name` | Model identifier or HF repo | Required | Valid model ID or name |
-| `default` | Whether this is the default model | `false` | `true`, `false` |
-| `file` | Specific model file for GGUF models | Model-dependent | Valid filename |
-| `quantization` | Model-specific quantization | Global setting | `"none"`, `"int8"`, `"int4"` |
+| Option         | Description                         | Default         | Valid Values                 |
+|----------------|-------------------------------------|-----------------|------------------------------|
+| `name`         | Model identifier or HF repo         | Required        | Valid model ID or name       |
+| `default`      | Whether this is the default model   | `false`         | `true`, `false`              |
+| `file`         | Specific model file for GGUF models | Model-dependent | Valid filename               |
+| `quantization` | Model-specific quantization         | Global setting  | `"none"`, `"int8"`, `"int4"` |
 
 ## Feature Configuration
 
@@ -413,20 +415,20 @@ model_integration:
 ### General Guidelines
 
 1. **Use Environment Variables for Secrets**
-   - Always use environment variables for API keys and sensitive information
-   - Provide clear documentation on required environment variables
+    - Always use environment variables for API keys and sensitive information
+    - Provide clear documentation on required environment variables
 
 2. **Provide Sensible Defaults**
-   - Configure default values that work in most scenarios
-   - Document the reasoning behind default values
+    - Configure default values that work in most scenarios
+    - Document the reasoning behind default values
 
 3. **Layer Configuration**
-   - Use a layered approach to configuration (defaults → files → environment)
-   - Allow selective overrides without replacing entire configuration
+    - Use a layered approach to configuration (defaults → files → environment)
+    - Allow selective overrides without replacing entire configuration
 
 4. **Validate Configuration**
-   - Perform thorough validation at startup
-   - Provide clear error messages for configuration issues
+    - Perform thorough validation at startup
+    - Provide clear error messages for configuration issues
 
 ### Model-Specific Recommendations
 

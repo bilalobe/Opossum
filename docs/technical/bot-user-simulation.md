@@ -2,7 +2,8 @@
 
 ## Overview
 
-The Bot User Simulation Framework provides automated testing capabilities for Opossum Search by simulating realistic user behavior. This framework is particularly useful for testing:
+The Bot User Simulation Framework provides automated testing capabilities for Opossum Search by simulating realistic
+user behavior. This framework is particularly useful for testing:
 
 1. **Resilience** - How the system handles high load, service failures, and error cases
 2. **Special Features** - Testing date-specific Easter eggs and hidden commands
@@ -12,12 +13,12 @@ The Bot User Simulation Framework provides automated testing capabilities for Op
 
 The framework includes several types of bot users:
 
-| Bot Type | Description | Main Use Cases |
-|----------|-------------|----------------|
-| `BotUser` | Standard bot that sends chat messages | General testing, resilience testing |
-| `TimeBasedBotUser` | Bot that simulates specific dates | Testing date-based features like National Opossum Day |
-| `NationalOpossumDayTester` | Specialized bot for Oct 18 features | Comprehensive testing of National Opossum Day |
-| `ModelSelectionBot` | Analyzes model selection patterns | Testing the hybrid model routing system |
+| Bot Type                   | Description                           | Main Use Cases                                        |
+|----------------------------|---------------------------------------|-------------------------------------------------------|
+| `BotUser`                  | Standard bot that sends chat messages | General testing, resilience testing                   |
+| `TimeBasedBotUser`         | Bot that simulates specific dates     | Testing date-based features like National Opossum Day |
+| `NationalOpossumDayTester` | Specialized bot for Oct 18 features   | Comprehensive testing of National Opossum Day         |
+| `ModelSelectionBot`        | Analyzes model selection patterns     | Testing the hybrid model routing system               |
 
 ## Behavior Profiles
 

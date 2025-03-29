@@ -1,6 +1,8 @@
 # Markov Chain Text Generation
 
-The Markov chain text generation system is used specifically for creating ambient background text in the UI, combining opossum facts with technical terminology. This is not part of the actual conversation system but rather provides an engaging visual element.
+The Markov chain text generation system is used specifically for creating ambient background text in the UI, combining
+opossum facts with technical terminology. This is not part of the actual conversation system but rather provides an
+engaging visual element.
 
 ## Implementation
 
@@ -42,19 +44,19 @@ def _get_markov_models():
 ### Text Generation Methods
 
 1. **Pure Opossum Text**
-   - Uses opossum-only Markov chain
-   - Generates nature-focused content
-   - Maintains factual accuracy
+    - Uses opossum-only Markov chain
+    - Generates nature-focused content
+    - Maintains factual accuracy
 
 2. **Combined Tech-Opossum**
-   - Merges both models
-   - Creates unique hybrid content
-   - Weights opossum content higher (1.5:1)
+    - Merges both models
+    - Creates unique hybrid content
+    - Weights opossum content higher (1.5:1)
 
 3. **Tech with Opossum Terms**
-   - Injects opossum terminology into tech text
-   - Creates amusing technical-sounding content
-   - Maintains readability
+    - Injects opossum terminology into tech text
+    - Creates amusing technical-sounding content
+    - Maintains readability
 
 ## Emoji Integration
 
@@ -95,16 +97,19 @@ opossum_emojis = [
 ### Line Generation Types
 
 1. **Pure Markov Chain**
+
 ```python
 line = opossum_model.make_short_sentence(80)
 ```
 
 2. **Combined Model**
+
 ```python
 line = combined_model.make_short_sentence(100)
 ```
 
 3. **Technical Mashup**
+
 ```python
 term1 = random.choice(opossum_terms)
 term2 = random.choice(tech_terms)
@@ -117,6 +122,7 @@ patterns = [
 ### Visual Formatting
 
 The system adds technical-looking prefixes:
+
 ```python
 prefixes = [
     f"[ANALYSIS-{random.randint(100, 999)}]",

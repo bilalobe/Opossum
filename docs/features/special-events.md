@@ -1,17 +1,20 @@
 # Special Events
 
-*Note: These special events are planned features for future implementation. This document outlines the conceptual design and implementation possibilities.*
+*Note: These special events are planned features for future implementation. This document outlines the conceptual design
+and implementation possibilities.*
 
 ## Seasonal Events
 
-Opossum Search celebrates various occasions throughout the year with temporary features and themed experiences. These events provide moments of delight for users while showcasing the system's flexibility.
+Opossum Search celebrates various occasions throughout the year with temporary features and themed experiences. These
+events provide moments of delight for users while showcasing the system's flexibility.
 
 ### April Fool's Day (April 1)
 
 For 24 hours on April 1st, Opossum Search implements harmless pranks that surprise and amuse users:
 
 - **Reversed Results**: Search results appear in reverse order
-- **Playful Responses**: The system occasionally responds with intentionally silly or overly literal interpretations of queries
+- **Playful Responses**: The system occasionally responds with intentionally silly or overly literal interpretations of
+  queries
 - **Word Scramble**: Some words in responses are comically scrambled
 - **"Did you actually mean..."**: The system suggests absurd alternatives to simple search terms
 
@@ -120,6 +123,7 @@ special_events:
 ### Event Assets
 
 Special events use dedicated asset collections:
+
 - Themed SVG templates
 - Special animation sequences
 - Event-specific response modifiers
@@ -144,4 +148,5 @@ We're considering the following events for future implementation:
 - **International Talk Like a Pirate Day** (September 19): Arrr! Ye responses be in pirate speak!
 - **Halloween** (October 31): Subtle spooky themes and "trick or treat" special command
 
-Interested in contributing to a special event implementation? Check our contributing guidelines and join the conversation!
+Interested in contributing to a special event implementation? Check our contributing guidelines and join the
+conversation!

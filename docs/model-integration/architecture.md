@@ -2,7 +2,9 @@
 
 ## Overview
 
-The Opossum Search system implements a sophisticated model integration architecture that dynamically selects and utilizes various AI models based on request characteristics, service availability, and capability requirements. This hybrid approach enables resilience, flexibility, and optimal performance across diverse search scenarios.
+The Opossum Search system implements a sophisticated model integration architecture that dynamically selects and
+utilizes various AI models based on request characteristics, service availability, and capability requirements. This
+hybrid approach enables resilience, flexibility, and optimal performance across diverse search scenarios.
 
 ## Architectural Principles
 
@@ -41,16 +43,18 @@ graph TD
 
 1. **Request Analyzer**: Examines incoming requests to determine their characteristics and requirements.
 
-2. **Model Selector**: The central decision-making component that determines which model backend to use for a given request.
+2. **Model Selector**: The central decision-making component that determines which model backend to use for a given
+   request.
 
 3. **Service Availability**: Monitors the status and availability of each model service.
 
-4. **Capability Matrix**: Defines the capabilities of each model backend and their suitability for different request types.
+4. **Capability Matrix**: Defines the capabilities of each model backend and their suitability for different request
+   types.
 
 5. **Model Backends**:
-   - **Gemini Backend**: Integration with Google's Gemini API
-   - **Ollama Backend**: Integration with locally deployed Ollama models
-   - **Transformers Backend**: Direct integration with Hugging Face Transformers
+    - **Gemini Backend**: Integration with Google's Gemini API
+    - **Ollama Backend**: Integration with locally deployed Ollama models
+    - **Transformers Backend**: Direct integration with Hugging Face Transformers
 
 6. **Response Formatter**: Ensures consistent response format regardless of the model used.
 
@@ -87,7 +91,8 @@ def process_request(request):
 
 ## Hybrid Model Backend
 
-The core of the architecture is the `HybridModelBackend` class, which encapsulates the logic for selecting between different model backends:
+The core of the architecture is the `HybridModelBackend` class, which encapsulates the logic for selecting between
+different model backends:
 
 ```python
 class HybridModelBackend:

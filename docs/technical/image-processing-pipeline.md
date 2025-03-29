@@ -2,7 +2,9 @@
 
 ## 1. Overview
 
-The Image Processing Pipeline in Opossum Search handles multimodal queries containing images, preparing them for analysis by various AI backends. This pipeline ensures optimal image formatting for different models, performs necessary transformations, and extracts relevant metadata to enhance multimodal understanding.
+The Image Processing Pipeline in Opossum Search handles multimodal queries containing images, preparing them for
+analysis by various AI backends. This pipeline ensures optimal image formatting for different models, performs necessary
+transformations, and extracts relevant metadata to enhance multimodal understanding.
 
 ## 2. Processing Stages
 
@@ -510,4 +512,5 @@ The image processing pipeline roadmap includes:
 4. **ML-Based Image Analysis**: Pre-classification of images before sending to LLMs
 5. **Animated GIF/WebP Support**: Handling of animated content
 
-This image processing pipeline provides Opossum Search with robust multimodal capabilities while ensuring optimal performance, security, and compatibility with various LLM backends.
+This image processing pipeline provides Opossum Search with robust multimodal capabilities while ensuring optimal
+performance, security, and compatibility with various LLM backends.

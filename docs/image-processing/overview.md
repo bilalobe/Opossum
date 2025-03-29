@@ -2,11 +2,14 @@
 
 ## Introduction
 
-Opossum Search features a robust image processing pipeline designed to handle a wide range of operations from basic image manipulation to complex analysis and SVG generation. This system forms an integral part of Opossum's multimodal capabilities, allowing seamless integration of visual content within the search and response framework.
+Opossum Search features a robust image processing pipeline designed to handle a wide range of operations from basic
+image manipulation to complex analysis and SVG generation. This system forms an integral part of Opossum's multimodal
+capabilities, allowing seamless integration of visual content within the search and response framework.
 
 ## Architecture
 
-The image processing pipeline is built on a modular architecture that enables efficient resource utilization and high throughput:
+The image processing pipeline is built on a modular architecture that enables efficient resource utilization and high
+throughput:
 
 ```mermaid
 graph TD
@@ -71,13 +74,13 @@ The image processing pipeline integrates with other Opossum components:
 
 ## Performance Characteristics
 
-| Operation | Average Processing Time | Cache Impact |
-|-----------|-------------------------|-------------|
-| Basic Analysis | 300-500ms | 90% reduction |
-| Advanced Detection | 800-1200ms | 85% reduction |
-| Filter Application | 100-200ms | 95% reduction |
-| SVG Generation | 500-1500ms | 80% reduction |
-| Combined Operations | 1000-2000ms | 85% reduction |
+| Operation           | Average Processing Time | Cache Impact  |
+|---------------------|-------------------------|---------------|
+| Basic Analysis      | 300-500ms               | 90% reduction |
+| Advanced Detection  | 800-1200ms              | 85% reduction |
+| Filter Application  | 100-200ms               | 95% reduction |
+| SVG Generation      | 500-1500ms              | 80% reduction |
+| Combined Operations | 1000-2000ms             | 85% reduction |
 
 *Times measured on standard hardware with 1024×768 images*
 
@@ -164,7 +167,8 @@ Upcoming enhancements to the image processing pipeline include:
 - Expanded medical and scientific image analysis
 
 !!! note
-    The image processing capabilities of Opossum Search continue to evolve, with new features and optimizations regularly added to enhance the system's multimodal capabilities.
+The image processing capabilities of Opossum Search continue to evolve, with new features and optimizations regularly
+added to enhance the system's multimodal capabilities.
 
 ## Related Documentation
 

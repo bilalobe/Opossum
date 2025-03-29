@@ -2,10 +2,13 @@
 
 ## Overview
 
-The Opossum Search image processing system implements a sophisticated multi-tiered caching architecture to optimize performance, reduce resource consumption, and improve response times. This document details the caching strategies used throughout the image processing pipeline.
+The Opossum Search image processing system implements a sophisticated multi-tiered caching architecture to optimize
+performance, reduce resource consumption, and improve response times. This document details the caching strategies used
+throughout the image processing pipeline.
 
 !!! note
-    Effective caching is crucial for maintaining high performance in image processing. This document outlines the caching architecture and strategies used in Opossum Search.
+Effective caching is crucial for maintaining high performance in image processing. This document outlines the caching
+architecture and strategies used in Opossum Search.
 
 ## Caching Architecture
 
@@ -39,12 +42,12 @@ graph TD
 
 ### Cache Tiers
 
-| Cache Tier | Storage Medium | Access Speed | Capacity | Persistence | Use Case |
-|------------|----------------|--------------|----------|-------------|----------|
-| L1: Memory | RAM | <1ms | Limited | None | Frequently accessed small results |
-| L2: Redis | Redis Cluster | 1-5ms | Medium | Configurable | Shared results across instances |
-| L3: Disk | Local SSD | 5-20ms | Large | Full | Larger results, backup layer |
-| L4: CDN | Distributed | Variable | Very Large | Extended | Public, static results |
+| Cache Tier | Storage Medium | Access Speed | Capacity   | Persistence  | Use Case                          |
+|------------|----------------|--------------|------------|--------------|-----------------------------------|
+| L1: Memory | RAM            | <1ms         | Limited    | None         | Frequently accessed small results |
+| L2: Redis  | Redis Cluster  | 1-5ms        | Medium     | Configurable | Shared results across instances   |
+| L3: Disk   | Local SSD      | 5-20ms       | Large      | Full         | Larger results, backup layer      |
+| L4: CDN    | Distributed    | Variable     | Very Large | Extended     | Public, static results            |
 
 ## Cache Categories
 
@@ -200,13 +203,13 @@ def generate_cache_key(image_id, operations, options):
 
 Different cache items have different time-to-live (TTL) values based on their characteristics:
 
-| Content Type | Default TTL | Rationale |
-|--------------|-------------|-----------|
-| Final Results | 24 hours | Balance between freshness and efficiency |
-| Intermediate Results | 1 hour | Temporary computation savings |
-| Thumbnails | 7 days | Rarely change, high request frequency |
-| Resources | 24-48 hours | Static content with version checks |
-| Error Results | 5 minutes | Prevent repeated processing of problematic inputs |
+| Content Type         | Default TTL | Rationale                                         |
+|----------------------|-------------|---------------------------------------------------|
+| Final Results        | 24 hours    | Balance between freshness and efficiency          |
+| Intermediate Results | 1 hour      | Temporary computation savings                     |
+| Thumbnails           | 7 days      | Rarely change, high request frequency             |
+| Resources            | 24-48 hours | Static content with version checks                |
+| Error Results        | 5 minutes   | Prevent repeated processing of problematic inputs |
 
 TTLs are dynamically adjusted based on:
 
@@ -244,6 +247,7 @@ def invalidate_image_caches(image_id):
 ### Version-Based Invalidation
 
 Cache keys include version information to automatically invalidate when:
+
 - Processing algorithms change
 - New filters are added
 - Quality improvements are implemented
@@ -257,42 +261,42 @@ IMAGE_PROCESSING_VERSION = "2.5.0"  # Included in all cache keys
 
 Different cache tiers implement appropriate eviction policies:
 
-| Cache Tier | Primary Policy | Secondary Policy |
-|------------|----------------|------------------|
-| Memory | LRU (Least Recently Used) | Size limit |
-| Redis | LFU (Least Frequently Used) | TTL |
-| Disk | FIFO with size limits | Manual purge |
-| CDN | TTL | None |
+| Cache Tier | Primary Policy              | Secondary Policy |
+|------------|-----------------------------|------------------|
+| Memory     | LRU (Least Recently Used)   | Size limit       |
+| Redis      | LFU (Least Frequently Used) | TTL              |
+| Disk       | FIFO with size limits       | Manual purge     |
+| CDN        | TTL                         | None             |
 
 ## Performance Metrics
 
 ### Cache Hit Rates
 
-| Cache Type | Target Hit Rate | Observed Hit Rate |
-|------------|-----------------|-------------------|
-| Result Cache | >60% | 65-75% |
-| Intermediate Cache | >40% | 45-55% |
-| Thumbnail Cache | >80% | 85-95% |
-| Resource Cache | >95% | 98-99% |
+| Cache Type         | Target Hit Rate | Observed Hit Rate |
+|--------------------|-----------------|-------------------|
+| Result Cache       | >60%            | 65-75%            |
+| Intermediate Cache | >40%            | 45-55%            |
+| Thumbnail Cache    | >80%            | 85-95%            |
+| Resource Cache     | >95%            | 98-99%            |
 
 ### Latency Improvements
 
-| Operation | Uncached Latency | Cached Latency | Improvement |
-|-----------|------------------|----------------|-------------|
-| Basic Filter | 100-200ms | 5-15ms | 93-95% |
-| Filter Chain | 300-800ms | 10-30ms | 96-97% |
-| SVG Generation | 500-2000ms | 15-50ms | 97-98% |
-| Image Analysis | 1000-3000ms | 20-70ms | 98-99% |
+| Operation      | Uncached Latency | Cached Latency | Improvement |
+|----------------|------------------|----------------|-------------|
+| Basic Filter   | 100-200ms        | 5-15ms         | 93-95%      |
+| Filter Chain   | 300-800ms        | 10-30ms        | 96-97%      |
+| SVG Generation | 500-2000ms       | 15-50ms        | 97-98%      |
+| Image Analysis | 1000-3000ms      | 20-70ms        | 98-99%      |
 
 ## Cache Storage Sizing
 
 Guidelines for allocating cache storage:
 
-| Traffic Level | Memory Cache | Redis Cache | Disk Cache |
-|--------------|--------------|-------------|------------|
-| Low (<100k req/day) | 1-2GB | 5-10GB | 20-50GB |
-| Medium (100k-1M req/day) | 4-8GB | 20-50GB | 100-200GB |
-| High (1M+ req/day) | 16-32GB | 100-200GB | 500GB-1TB |
+| Traffic Level            | Memory Cache | Redis Cache | Disk Cache |
+|--------------------------|--------------|-------------|------------|
+| Low (<100k req/day)      | 1-2GB        | 5-10GB      | 20-50GB    |
+| Medium (100k-1M req/day) | 4-8GB        | 20-50GB     | 100-200GB  |
+| High (1M+ req/day)       | 16-32GB      | 100-200GB   | 500GB-1TB  |
 
 ## Integration with Redis
 
@@ -471,7 +475,8 @@ caching:
 ```
 
 !!! tip
-    Properly configuring the caching system is essential for achieving optimal performance. Adjust the cache sizes, TTLs, and eviction policies based on your specific workload and resource constraints.
+Properly configuring the caching system is essential for achieving optimal performance. Adjust the cache sizes, TTLs,
+and eviction policies based on your specific workload and resource constraints.
 
 ## Related Documentation
 

@@ -41,8 +41,8 @@ The topic detector determines conversation stages through:
 1. Automatic progression from greeting to initial query
 2. Semantic similarity scoring between user message and topic embeddings
 3. Follow-up detection using indicator words:
-   - more, also, another, explain, elaborate
-   - why, how, what, tell me more
+    - more, also, another, explain, elaborate
+    - why, how, what, tell me more
 
 ## Configuration
 

@@ -3,13 +3,15 @@
 > **Related Documentation:**
 > - [Technical: GraphQL API](../technical/graphql-api.md) - Detailed technical implementation of the GraphQL API
 > - [API Reference: Routes](../api/routes.md) - Complementary REST API routes
-> - [Service Availability: Rate Limiting](../service-availability/rate-limiting-throttling.md) - Understanding API rate limits
+> - [Service Availability: Rate Limiting](../service-availability/rate-limiting-throttling.md) - Understanding API rate
+    limits
 
 ## Authentication
 
 The API supports three authentication methods:
 
 ### API Key Authentication
+
 For server-to-server integrations, use an API key:
 
 ```bash
@@ -17,6 +19,7 @@ curl -H "X-API-Key: your-api-key" https://api.opossumsearch.com/v1/graphql
 ```
 
 ### Bearer Token Authentication
+
 For user-authenticated requests, use a Bearer token:
 
 ```bash
@@ -24,6 +27,7 @@ curl -H "Authorization: Bearer your-token" https://api.opossumsearch.com/v1/grap
 ```
 
 ### OAuth 2.0
+
 For web applications, use OAuth 2.0 flow:
 
 1. Redirect users to `/oauth/authorize`
@@ -36,6 +40,7 @@ See [OAuth Configuration](oauth-configuration.md) for detailed OAuth setup instr
 ## Available Tools
 
 ### Apollo Studio Integration
+
 Apollo Studio provides powerful tools for exploring and monitoring your GraphQL API. To use Apollo Studio:
 
 1. Visit http://localhost:5000/graphql in your browser
@@ -44,6 +49,7 @@ Apollo Studio provides powerful tools for exploring and monitoring your GraphQL 
 4. Explore the schema, run queries, and monitor performance
 
 ### GraphQL Voyager
+
 GraphQL Voyager provides an interactive visualization of your API schema:
 
 1. Visit http://localhost:5000/voyager in your browser
@@ -52,6 +58,7 @@ GraphQL Voyager provides an interactive visualization of your API schema:
 4. Use the search function to find specific types or fields
 
 ### Self-Documenting Schema
+
 The GraphQL schema includes comprehensive descriptions for all types and fields:
 
 ```graphql
@@ -69,14 +76,17 @@ query {
 ## Monitoring and Metrics
 
 ### Health Checks
+
 - Endpoint: `/.well-known/apollo/server-health`
 - Purpose: Check the health of the GraphQL service
 
 ### Schema Information
+
 - Endpoint: `/graphql/schema`
 - Purpose: Get the complete GraphQL schema in SDL format
 
 ### Metrics
+
 - Endpoint: `/graphql/metrics`
 - Purpose: Get Prometheus-compatible metrics for monitoring
 

@@ -11,25 +11,27 @@
 
 ## 8.2 Hybrid Model Implementation
 
-The system implements an intelligent hybrid model backend that dynamically selects and combines different model capabilities based on availability and requirements:
+The system implements an intelligent hybrid model backend that dynamically selects and combines different model
+capabilities based on availability and requirements:
 
 ### 8.2.1 Backend Selection Strategy
 
 The hybrid model uses a weighted scoring system to select the most appropriate backend:
 
-| Capability       | Weight | Description                                      |
-|-----------------|--------|--------------------------------------------------|
-| Text Processing | 0.3    | Basic text understanding and generation          |
-| Reasoning       | 0.3    | Complex reasoning and inference capabilities     |
-| Multimodal      | 0.2    | Ability to process images with text             |
-| Latency         | 0.1    | Response time importance                        |
-| Resource Usage  | 0.1    | System resource consumption consideration        |
+| Capability      | Weight | Description                                  |
+|-----------------|--------|----------------------------------------------|
+| Text Processing | 0.3    | Basic text understanding and generation      |
+| Reasoning       | 0.3    | Complex reasoning and inference capabilities |
+| Multimodal      | 0.2    | Ability to process images with text          |
+| Latency         | 0.1    | Response time importance                     |
+| Resource Usage  | 0.1    | System resource consumption consideration    |
 
 ### 8.2.2 Service Capabilities
 
 Each service is scored based on its capabilities:
 
 #### Gemini API
+
 - Text Processing: 0.9
 - Reasoning: 0.95
 - Multimodal: 1.0
@@ -37,6 +39,7 @@ Each service is scored based on its capabilities:
 - Resource Usage: 0.2
 
 #### Ollama
+
 - Text Processing: 0.8
 - Reasoning: 0.7
 - Multimodal: 0.0
@@ -44,6 +47,7 @@ Each service is scored based on its capabilities:
 - Resource Usage: 0.6
 
 #### Transformers
+
 - Text Processing: 0.7
 - Reasoning: 0.5
 - Multimodal: 0.0
@@ -55,28 +59,28 @@ Each service is scored based on its capabilities:
 The hybrid model implementation includes:
 
 1. **Lazy Backend Initialization**
-   - Backends are created only when needed
-   - Reduces resource usage and startup time
+    - Backends are created only when needed
+    - Reduces resource usage and startup time
 
 2. **Real-time Availability Checks**
-   - Integrates with ServiceAvailability monitoring
-   - Considers service health in selection decisions
+    - Integrates with ServiceAvailability monitoring
+    - Considers service health in selection decisions
 
 3. **Intelligent Routing**
-   - Fast path for image-related queries to Gemini
-   - Weighted capability scoring for text queries
-   - Automatic fallback to next best available service
+    - Fast path for image-related queries to Gemini
+    - Weighted capability scoring for text queries
+    - Automatic fallback to next best available service
 
 4. **Error Handling**
-   - Graceful degradation when services fail
-   - Automatic fallback to Transformers as last resort
-   - Clear error logging and user communication
+    - Graceful degradation when services fail
+    - Automatic fallback to Transformers as last resort
+    - Clear error logging and user communication
 
 ### 8.2.4 Selection Process
 
 1. Check service availability status
 2. Quick check for image processing needs
-   - Route directly to Gemini if available
+    - Route directly to Gemini if available
 3. Calculate capability scores for available services
 4. Select highest scoring available backend
 5. Initialize backend if needed

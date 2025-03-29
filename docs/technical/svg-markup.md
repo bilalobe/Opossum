@@ -14,18 +14,18 @@ The Opossum Search platform uses LLMs to generate SVG markup directly for creati
 ### Why SVG Markup Generation is Secure
 
 1. **Declarative vs. Procedural**
-   - SVG is **declarative markup**, not executable code
-   - Describes what to display, not how to execute operations
-   - No ability to access system resources or perform operations
+    - SVG is **declarative markup**, not executable code
+    - Describes what to display, not how to execute operations
+    - No ability to access system resources or perform operations
 
 2. **Browser Rendering**
-   - SVG is rendered by the client browser, not executed on the server
-   - Server only passes the validated markup
-   - Follows same security model as other web content (HTML/CSS)
+    - SVG is rendered by the client browser, not executed on the server
+    - Server only passes the validated markup
+    - Follows same security model as other web content (HTML/CSS)
 
 3. **Validation Capabilities**
-   - SVG can be validated against known schemas
-   - Potential for sanitizing any scripting elements (like embedded JavaScript)
+    - SVG can be validated against known schemas
+    - Potential for sanitizing any scripting elements (like embedded JavaScript)
    ```python
    def sanitize_svg(svg_markup):
        # Remove any script tags or event handlers
@@ -36,30 +36,30 @@ The Opossum Search platform uses LLMs to generate SVG markup directly for creati
 
 ### Comparison with Script-Based Drawing
 
-| Aspect | SVG Markup Generation | Script-Based Drawing |
-|--------|------------------------|----------------------|
-| **Execution Model** | Rendered by browser | Executed on server |
-| **Security Risk** | Low (similar to HTML) | Very High (RCE risk) |
-| **Performance** | Lightweight for server | Resource-intensive |
-| **Scalability** | High | Low |
+| Aspect              | SVG Markup Generation         | Script-Based Drawing          |
+|---------------------|-------------------------------|-------------------------------|
+| **Execution Model** | Rendered by browser           | Executed on server            |
+| **Security Risk**   | Low (similar to HTML)         | Very High (RCE risk)          |
+| **Performance**     | Lightweight for server        | Resource-intensive            |
+| **Scalability**     | High                          | Low                           |
 | **Browser Support** | Native in all modern browsers | Requires conversion to images |
 
 ## Implementation Advantages
 
 1. **Vector Graphics Benefits**
-   - Infinite scaling without quality loss
-   - Smaller file sizes than raster images
-   - Accessibility features (screen readers can access text elements)
+    - Infinite scaling without quality loss
+    - Smaller file sizes than raster images
+    - Accessibility features (screen readers can access text elements)
 
 2. **Animation Capabilities**
-   - Native animation via `<animate>` tags
-   - Interactive elements possible
-   - No need for video processing
+    - Native animation via `<animate>` tags
+    - Interactive elements possible
+    - No need for video processing
 
 3. **Integration with Web Technologies**
-   - Direct CSS styling
-   - JavaScript interactivity when needed
-   - Compatible with all web frameworks
+    - Direct CSS styling
+    - JavaScript interactivity when needed
+    - Compatible with all web frameworks
 
 ## Example Implementation
 
@@ -86,32 +86,39 @@ async def generate_svg_visualization(self, query):
         "data": sanitized_svg
     }
 ```
+
 ## Related Research and Implementations
 
 ### Academic and Industry Efforts
 
 Recent research has explored the intersection of LLMs and vector graphics generation, notably:
 
-- **[Chat2SVG](https://chat2svg.github.io/)** (2023): Research project demonstrating direct SVG generation from natural language prompts using large language models
-- **[SVGCode](https://github.com/microsoft/svgcode)** (Microsoft): Converting raster images to SVG using machine learning techniques
-- **[Nougat](https://facebookresearch.github.io/nougat/)** (Meta): Academic paper rendering model focused on mathematical notation and diagrams
+- **[Chat2SVG](https://chat2svg.github.io/)** (2023): Research project demonstrating direct SVG generation from natural
+  language prompts using large language models
+- **[SVGCode](https://github.com/microsoft/svgcode)** (Microsoft): Converting raster images to SVG using machine
+  learning techniques
+- **[Nougat](https://facebookresearch.github.io/nougat/)** (Meta): Academic paper rendering model focused on
+  mathematical notation and diagrams
 
 ### Distinctive Aspects of Opossum's Implementation
 
 While building on these foundational concepts, our implementation is distinctive in several key ways:
 
 1. **Search Integration**
-   - Context-aware visualizations that incorporate search history and domain knowledge
-   - Visualization as an extension of information retrieval rather than standalone generation
+    - Context-aware visualizations that incorporate search history and domain knowledge
+    - Visualization as an extension of information retrieval rather than standalone generation
 
 2. **Hybrid Model Architecture**
-   - Intelligent model selection based on query complexity and visualization requirements
-   - Fallback mechanisms that ensure generation resilience in production environments
-   - Multiple model support (Gemini, Ollama-based models, local transformers)
+    - Intelligent model selection based on query complexity and visualization requirements
+    - Fallback mechanisms that ensure generation resilience in production environments
+    - Multiple model support (Gemini, Ollama-based models, local transformers)
 
 3. **Specialized Search Domain Optimizations**
-   - Domain-specific templates and knowledge integration for our subject area
-   - Consistency with textual search results for a unified experience
+    - Domain-specific templates and knowledge integration for our subject area
+    - Consistency with textual search results for a unified experience
+
 ## Conclusion
 
-SVG markup generation represents a secure, efficient approach for dynamic visualization in Opossum Search. By having LLMs generate SVG directly rather than executable code, we maintain strong security boundaries while enabling rich visual content. This approach aligns with web standards and modern best practices for content generation and rendering.
+SVG markup generation represents a secure, efficient approach for dynamic visualization in Opossum Search. By having
+LLMs generate SVG directly rather than executable code, we maintain strong security boundaries while enabling rich
+visual content. This approach aligns with web standards and modern best practices for content generation and rendering.

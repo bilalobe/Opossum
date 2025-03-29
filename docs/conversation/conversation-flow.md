@@ -1,6 +1,7 @@
 # Conversation Flow
 
-The Opossum chatbot implements a sophisticated conversation management system that coordinates multiple components to handle user interactions.
+The Opossum chatbot implements a sophisticated conversation management system that coordinates multiple components to
+handle user interactions.
 
 ## Architecture
 
@@ -41,20 +42,20 @@ class ConversationState:
 ### Conversation Lifecycle
 
 1. **Initialization**
-   - Create session-specific conversation state
-   - Initialize sentiment tracker
-   - Set up response generator
+    - Create session-specific conversation state
+    - Initialize sentiment tracker
+    - Set up response generator
 
 2. **Message Processing**
-   - Check cache for existing responses
-   - Update conversation state
-   - Track sentiment and engagement
-   - Generate contextual responses
+    - Check cache for existing responses
+    - Update conversation state
+    - Track sentiment and engagement
+    - Generate contextual responses
 
 3. **Cleanup**
-   - Auto-expire inactive sessions
-   - Clean up resources
-   - Save relevant analytics
+    - Auto-expire inactive sessions
+    - Clean up resources
+    - Save relevant analytics
 
 ## Component Integration
 
@@ -102,23 +103,24 @@ def get_context_window(self, window_size: int = 5) -> List[Dict[str, Any]]:
 The system provides several layers of resilience:
 
 1. **Cache Layer**
-   - Caches successful responses
-   - Reduces duplicate processing
-   - Improves response time
+    - Caches successful responses
+    - Reduces duplicate processing
+    - Improves response time
 
 2. **Fallback Chain**
-   - Model backend failures
-   - Topic detection issues
-   - General error handling
+    - Model backend failures
+    - Topic detection issues
+    - General error handling
 
 3. **State Recovery**
-   - Session restoration
-   - Context preservation
-   - Graceful degradation
+    - Session restoration
+    - Context preservation
+    - Graceful degradation
 
 ## Example Flow
 
 1. User sends message:
+
 ```json
 {
     "message": "Tell me about opossums",
@@ -128,13 +130,14 @@ The system provides several layers of resilience:
 ```
 
 2. System processes:
-   - Creates/retrieves conversation state
-   - Analyzes message sentiment
-   - Determines topic and stage
-   - Generates contextual response
-   - Updates conversation history
+    - Creates/retrieves conversation state
+    - Analyzes message sentiment
+    - Determines topic and stage
+    - Generates contextual response
+    - Updates conversation history
 
 3. Response includes:
+
 ```json
 {
     "response": "...",

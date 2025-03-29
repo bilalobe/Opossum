@@ -2,7 +2,9 @@
 
 ## Overview
 
-Opossum Search implements a sophisticated backend selection system that dynamically chooses the optimal AI model for each request. This selection process considers multiple factors including request characteristics, model capabilities, service availability, and performance requirements to make intelligent routing decisions.
+Opossum Search implements a sophisticated backend selection system that dynamically chooses the optimal AI model for
+each request. This selection process considers multiple factors including request characteristics, model capabilities,
+service availability, and performance requirements to make intelligent routing decisions.
 
 ## Selection Process
 
@@ -239,23 +241,23 @@ The backend selection considers these key factors:
 
 Different request types require different model capabilities:
 
-| Request Type | Key Capabilities |
-|--------------|------------------|
-| Text-only queries | `general_knowledge`, `text_understanding` |
-| Image analysis | `image_understanding`, `visual_reasoning` |
-| Code questions | `code_understanding`, `[language]_expertise` |
-| Creative tasks | `creative_generation`, `long_context` |
-| Technical domains | `technical_knowledge`, `domain_expertise` |
+| Request Type      | Key Capabilities                             |
+|-------------------|----------------------------------------------|
+| Text-only queries | `general_knowledge`, `text_understanding`    |
+| Image analysis    | `image_understanding`, `visual_reasoning`    |
+| Code questions    | `code_understanding`, `[language]_expertise` |
+| Creative tasks    | `creative_generation`, `long_context`        |
+| Technical domains | `technical_knowledge`, `domain_expertise`    |
 
 ### 2. Service Characteristics
 
 Each backend has different characteristics that affect selection:
 
-| Backend | Strengths | Limitations |
-|---------|-----------|-------------|
-| Gemini | Advanced reasoning, multimodal, up-to-date knowledge | External dependency, cost, potential latency |
-| Ollama | Local deployment, customization, no data sharing | Limited context window, less powerful than Gemini |
-| Transformers | Maximum control, always available locally | Most limited capabilities, higher resource usage |
+| Backend      | Strengths                                            | Limitations                                       |
+|--------------|------------------------------------------------------|---------------------------------------------------|
+| Gemini       | Advanced reasoning, multimodal, up-to-date knowledge | External dependency, cost, potential latency      |
+| Ollama       | Local deployment, customization, no data sharing     | Limited context window, less powerful than Gemini |
+| Transformers | Maximum control, always available locally            | Most limited capabilities, higher resource usage  |
 
 ### 3. Operational Factors
 
@@ -278,12 +280,13 @@ Query: "What is the capital of France?"
 ```
 
 Selection process:
+
 1. Required capabilities: `["general_knowledge"]`
 2. All backends support this capability
 3. Assuming all are available, scores might be:
-   - Gemini: 0.95 (highest accuracy)
-   - Ollama: 0.85 (good accuracy, lower latency)
-   - Transformers: 0.70 (limited knowledge)
+    - Gemini: 0.95 (highest accuracy)
+    - Ollama: 0.85 (good accuracy, lower latency)
+    - Transformers: 0.70 (limited knowledge)
 4. Selected: Gemini
 
 ### Example 2: Image Analysis with Unavailable Primary
@@ -295,11 +298,12 @@ Query: "What's shown in this image?" with attached image
 ```
 
 Selection process:
+
 1. Required capabilities: `["image_understanding"]`
 2. Gemini scores highest but is unavailable
 3. Fallback scores:
-   - Ollama: 0.75 (limited image capabilities)
-   - Transformers: 0.60 (basic image understanding)
+    - Ollama: 0.75 (limited image capabilities)
+    - Transformers: 0.60 (basic image understanding)
 4. Selected: Ollama as fallback
 
 ### Example 3: Complex Code Analysis
@@ -312,11 +316,12 @@ with code snippet
 ```
 
 Selection process:
+
 1. Required capabilities: `["code_understanding", "python_expertise"]`
 2. Scores:
-   - Gemini: 0.92 (strong code understanding)
-   - Ollama: 0.88 (good code capabilities with CodeLlama)
-   - Transformers: 0.65 (limited code analysis)
+    - Gemini: 0.92 (strong code understanding)
+    - Ollama: 0.88 (good code capabilities with CodeLlama)
+    - Transformers: 0.65 (limited code analysis)
 3. If optimizing for cost: Ollama might be selected despite slightly lower score
 4. If optimizing for quality: Gemini would be selected
 
@@ -386,6 +391,7 @@ def record_selection_telemetry(request, selected_backend, success, duration_ms):
 ```
 
 This telemetry data enables:
+
 - Optimization of scoring weights
 - Identification of backend strengths and weaknesses
 - Detection of patterns in backend performance

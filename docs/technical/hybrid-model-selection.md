@@ -2,12 +2,16 @@
 
 ## Overview
 
-The hybrid model architecture provides an intelligent layer for combining multiple model backends based on availability, capability, and request requirements. This document outlines the technical implementation and decision-making process.
+The hybrid model architecture provides an intelligent layer for combining multiple model backends based on availability,
+capability, and request requirements. This document outlines the technical implementation and decision-making process.
 
 > **Related Documentation:**
-> - [Technical: Hybrid Model Selection System](../technical/hybrid-model-selection.md) - Detailed technical implementation of the selection algorithm
-> - [Model Integration: Backend Selection](../model-integration/backend-selection.md) - Additional details on backend selection criteria
-> - [Technical: Redis Caching Architecture](../technical/redis-caching-architecture.md) - How Redis supports the hybrid model architecture
+> - [Technical: Hybrid Model Selection System](../technical/hybrid-model-selection.md) - Detailed technical
+    implementation of the selection algorithm
+> - [Model Integration: Backend Selection](../model-integration/backend-selection.md) - Additional details on backend
+    selection criteria
+> - [Technical: Redis Caching Architecture](../technical/redis-caching-architecture.md) - How Redis supports the hybrid
+    model architecture
 
 ## Selection Process Diagram
 
@@ -51,7 +55,8 @@ CAPABILITY_WEIGHTS = {
 }
 ```
 
-Each backend is scored based on its capabilities in these areas, with the final selection going to the highest scoring available backend.
+Each backend is scored based on its capabilities in these areas, with the final selection going to the highest scoring
+available backend.
 
 ### Backend Management
 
@@ -94,12 +99,12 @@ MODEL_CONFIGS = {
 
 ## Performance Characteristics
 
-| Metric                    | Target    | Actual (P95) |
-|--------------------------|-----------|--------------|
-| Backend Selection Time   | < 50ms    | 35ms        |
-| Initialization Time      | < 500ms   | 450ms       |
-| Fallback Trigger Time   | < 2000ms  | 1800ms      |
-| Cache Hit Response Time | < 100ms   | 85ms        |
+| Metric                  | Target   | Actual (P95) |
+|-------------------------|----------|--------------|
+| Backend Selection Time  | < 50ms   | 35ms         |
+| Initialization Time     | < 500ms  | 450ms        |
+| Fallback Trigger Time   | < 2000ms | 1800ms       |
+| Cache Hit Response Time | < 100ms  | 85ms         |
 
 ## Monitoring and Metrics
 

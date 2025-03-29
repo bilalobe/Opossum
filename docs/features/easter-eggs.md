@@ -2,11 +2,13 @@
 
 ## National Opossum Day (October 18)
 
-Every year on October 18, Opossum Search celebrates National Opossum Day with a special Easter egg that activates automatically for all users.
+Every year on October 18, Opossum Search celebrates National Opossum Day with a special Easter egg that activates
+automatically for all users.
 
 ### Activation
 
 This Easter egg is time-triggered and automatically activates when:
+
 - The date is October 18 (any year)
 - Any search query is performed
 
@@ -15,19 +17,19 @@ This Easter egg is time-triggered and automatically activates when:
 When activated, the following special features appear:
 
 1. **Festive UI Elements**
-   - The standard logo is replaced with a party hat-wearing opossum
-   - Search results are accompanied by small animated opossums that scurry across the screen
-   - Confetti animation plays on the first search of the day
+    - The standard logo is replaced with a party hat-wearing opossum
+    - Search results are accompanied by small animated opossums that scurry across the screen
+    - Confetti animation plays on the first search of the day
 
 2. **Special Responses**
-   - Queries receive opossum-themed responses, regardless of the question
-   - The system adds "playing possum" jokes to responses
-   - Easter egg text appears in a special purple font
+    - Queries receive opossum-themed responses, regardless of the question
+    - The system adds "playing possum" jokes to responses
+    - Easter egg text appears in a special purple font
 
 3. **Hidden Command: "possum party"**
-   - Typing "possum party" triggers a full-screen animation of dancing opossums
-   - This command unlocks a temporary "opossum mode" for the remainder of the session
-   - In "opossum mode", all error messages are replaced with opossum memes
+    - Typing "possum party" triggers a full-screen animation of dancing opossums
+    - This command unlocks a temporary "opossum mode" for the remainder of the session
+    - In "opossum mode", all error messages are replaced with opossum memes
 
 ### Technical Implementation
 
@@ -61,7 +63,8 @@ def check_for_easter_eggs(request_date, query):
 
 ### User Discovery
 
-This Easter egg is deliberately undocumented in the user-facing documentation to encourage discovery. However, subtle hints appear throughout the application starting on October 1:
+This Easter egg is deliberately undocumented in the user-facing documentation to encourage discovery. However, subtle
+hints appear throughout the application starting on October 1:
 
 - The 'O' in the Opossum Search logo subtly changes to have a small tail
 - The loading animation occasionally shows a brief opossum silhouette
@@ -69,7 +72,8 @@ This Easter egg is deliberately undocumented in the user-facing documentation to
 
 ### History
 
-This Easter egg was added in version 0.8.3 (September 2024) and has been a beloved tradition ever since. Each year, new opossum animations and jokes are added to keep the experience fresh.
+This Easter egg was added in version 0.8.3 (September 2024) and has been a beloved tradition ever since. Each year, new
+opossum animations and jokes are added to keep the experience fresh.
 
 ## Additional Easter Eggs
 

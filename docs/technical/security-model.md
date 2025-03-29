@@ -2,7 +2,8 @@
 
 ## Security Architecture Overview
 
-Opossum Search implements a comprehensive security model to protect user data, API infrastructure, and backend services. The security architecture follows these key principles:
+Opossum Search implements a comprehensive security model to protect user data, API infrastructure, and backend services.
+The security architecture follows these key principles:
 
 - **Defense in Depth**: Multiple security controls at different layers
 - **Principle of Least Privilege**: Minimal access rights for components
@@ -93,22 +94,22 @@ class AuthDirective(SchemaDirectiveVisitor):
 
 ### Permission Model
 
-| Role | Capabilities | Access Control |
-|------|--------------|----------------|
-| **Anonymous** | Basic search queries only | Rate limited to 10 requests/minute |
-| **User** | Standard search, chat, image processing | Rate limited to 50 requests/minute |
-| **Admin** | All features, system management | Rate limited to 100 requests/minute |
+| Role          | Capabilities                            | Access Control                      |
+|---------------|-----------------------------------------|-------------------------------------|
+| **Anonymous** | Basic search queries only               | Rate limited to 10 requests/minute  |
+| **User**      | Standard search, chat, image processing | Rate limited to 50 requests/minute  |
+| **Admin**     | All features, system management         | Rate limited to 100 requests/minute |
 
 ## Data Security
 
 ### Data Classification
 
-| Category | Description | Examples | Protection |
-|----------|-------------|----------|------------|
-| **Public** | Non-sensitive, publicly available | Public documentation | Basic validation |
-| **Internal** | Non-sensitive, internal use | Metrics, logs | Access control |
-| **Confidential** | Business sensitive | API keys, user search history | Encryption, access control |
-| **Restricted** | Highly sensitive | Authentication tokens | Encryption, strict access |
+| Category         | Description                       | Examples                      | Protection                 |
+|------------------|-----------------------------------|-------------------------------|----------------------------|
+| **Public**       | Non-sensitive, publicly available | Public documentation          | Basic validation           |
+| **Internal**     | Non-sensitive, internal use       | Metrics, logs                 | Access control             |
+| **Confidential** | Business sensitive                | API keys, user search history | Encryption, access control |
+| **Restricted**   | Highly sensitive                  | Authentication tokens         | Encryption, strict access  |
 
 ### Encryption Implementation
 
@@ -670,13 +671,13 @@ class IncidentResponse:
 
 ### Compliance Controls
 
-| Requirement | Implementation | Verification |
-|-------------|----------------|--------------|
-| **Data Encryption** | All sensitive data encrypted at rest and in transit | Regular security audits |
-| **Access Control** | Role-based access with least privilege | Permission reviews |
-| **Audit Logging** | Comprehensive logging of security events | Log monitoring |
-| **Data Protection** | Data retention policies, minimization | Periodic data reviews |
-| **Vulnerability Management** | Regular dependency updates, scanning | CI/CD pipeline checks |
+| Requirement                  | Implementation                                      | Verification            |
+|------------------------------|-----------------------------------------------------|-------------------------|
+| **Data Encryption**          | All sensitive data encrypted at rest and in transit | Regular security audits |
+| **Access Control**           | Role-based access with least privilege              | Permission reviews      |
+| **Audit Logging**            | Comprehensive logging of security events            | Log monitoring          |
+| **Data Protection**          | Data retention policies, minimization               | Periodic data reviews   |
+| **Vulnerability Management** | Regular dependency updates, scanning                | CI/CD pipeline checks   |
 
 ### Privacy by Design
 
@@ -762,4 +763,6 @@ class DataSubjectRights:
         return {"deleted": True, "key_count": len(user_keys)}
 ```
 
-The Opossum Search security model provides comprehensive protection across all layers of the application, from user authentication through data processing to infrastructure security. By implementing these security controls, the system maintains confidentiality, integrity, and availability while meeting regulatory compliance requirements.
+The Opossum Search security model provides comprehensive protection across all layers of the application, from user
+authentication through data processing to infrastructure security. By implementing these security controls, the system
+maintains confidentiality, integrity, and availability while meeting regulatory compliance requirements.

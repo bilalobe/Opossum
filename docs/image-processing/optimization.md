@@ -2,19 +2,21 @@
 
 ## Overview
 
-Opossum Search implements a comprehensive set of performance optimization strategies for its image processing pipeline. This document outlines the techniques used to maximize throughput, minimize latency, and efficiently utilize system resources while maintaining high-quality output.
+Opossum Search implements a comprehensive set of performance optimization strategies for its image processing pipeline.
+This document outlines the techniques used to maximize throughput, minimize latency, and efficiently utilize system
+resources while maintaining high-quality output.
 
 ## Performance Challenges
 
 Image processing presents several unique performance challenges:
 
-| Challenge | Description | Impact |
-|-----------|-------------|--------|
-| Memory Consumption | Image data requires significant memory, especially at high resolutions | Resource constraints, potential OOM errors |
-| CPU Intensity | Many operations require intensive computation | Processing latency, system load |
-| I/O Bottlenecks | Reading/writing large image files can create bottlenecks | Throughput limitations, increased latency |
-| Scaling Complexity | Performance costs often scale non-linearly with image dimensions | Unpredictable processing times |
-| Resource Contention | Multiple concurrent operations compete for system resources | Reduced throughput, increased latency variance |
+| Challenge           | Description                                                            | Impact                                         |
+|---------------------|------------------------------------------------------------------------|------------------------------------------------|
+| Memory Consumption  | Image data requires significant memory, especially at high resolutions | Resource constraints, potential OOM errors     |
+| CPU Intensity       | Many operations require intensive computation                          | Processing latency, system load                |
+| I/O Bottlenecks     | Reading/writing large image files can create bottlenecks               | Throughput limitations, increased latency      |
+| Scaling Complexity  | Performance costs often scale non-linearly with image dimensions       | Unpredictable processing times                 |
+| Resource Contention | Multiple concurrent operations compete for system resources            | Reduced throughput, increased latency variance |
 
 ## Optimization Strategies
 
@@ -38,11 +40,11 @@ graph TD
 
 The system dynamically adjusts processing based on image dimensions:
 
-| Image Size | Strategy | Performance Gain |
-|------------|----------|------------------|
-| <800px | Direct processing at original resolution | Baseline |
-| 800-2000px | Scaled processing with selective upsampling | 40-60% faster |
-| >2000px | Multi-resolution pyramid approach | 70-90% faster |
+| Image Size | Strategy                                    | Performance Gain |
+|------------|---------------------------------------------|------------------|
+| <800px     | Direct processing at original resolution    | Baseline         |
+| 800-2000px | Scaled processing with selective upsampling | 40-60% faster    |
+| >2000px    | Multi-resolution pyramid approach           | 70-90% faster    |
 
 ### Parallel Processing Architecture
 
@@ -73,14 +75,14 @@ def process_image_batch(image_paths, operations, max_workers=None):
 
 Sophisticated memory management techniques minimize footprint:
 
-| Technique | Description | Memory Reduction |
-|-----------|-------------|------------------|
-| Progressive Loading | Loads only necessary image parts into memory | 40-70% |
-| In-place Operations | Modifies images in-place when possible | 30-50% |
-| Image Tiling | Processes large images in smaller tiles | 60-80% |
-| Format Optimization | Uses memory-efficient pixel formats | 20-40% |
-| Reference Counting | Tracks image data usage for timely deallocation | 20-30% |
-| Garbage Collection | Scheduled cleanup of unused resources | 10-20% |
+| Technique           | Description                                     | Memory Reduction |
+|---------------------|-------------------------------------------------|------------------|
+| Progressive Loading | Loads only necessary image parts into memory    | 40-70%           |
+| In-place Operations | Modifies images in-place when possible          | 30-50%           |
+| Image Tiling        | Processes large images in smaller tiles         | 60-80%           |
+| Format Optimization | Uses memory-efficient pixel formats             | 20-40%           |
+| Reference Counting  | Tracks image data usage for timely deallocation | 20-30%           |
+| Garbage Collection  | Scheduled cleanup of unused resources           | 10-20%           |
 
 ### Hardware Acceleration
 
@@ -93,12 +95,12 @@ The system leverages available hardware:
 
 Performance gains from hardware acceleration:
 
-| Operation | CPU Only | With Acceleration | Speedup |
-|-----------|----------|-------------------|---------|
-| Gaussian Blur | 100ms | 15ms | 6.7× |
-| Color Conversion | 45ms | 8ms | 5.6× |
-| Edge Detection | 120ms | 18ms | 6.7× |
-| Neural Vectorization | 8,500ms | 950ms | 8.9× |
+| Operation            | CPU Only | With Acceleration | Speedup |
+|----------------------|----------|-------------------|---------|
+| Gaussian Blur        | 100ms    | 15ms              | 6.7×    |
+| Color Conversion     | 45ms     | 8ms               | 5.6×    |
+| Edge Detection       | 120ms    | 18ms              | 6.7×    |
+| Neural Vectorization | 8,500ms  | 950ms             | 8.9×    |
 
 ### Algorithm Selection
 
@@ -133,13 +135,13 @@ def select_optimal_algorithm(image, operation, quality_target):
 
 The multi-level caching system significantly improves performance:
 
-| Cache Level | Description | Hit Rate | Latency Reduction |
-|-------------|-------------|----------|-------------------|
-| In-memory Result Cache | Caches complete results for repeat requests | 15-25% | 95-100% |
-| Intermediate Result Cache | Stores partial processing results for reuse | 20-30% | 40-60% |
-| Thumbnail Cache | Caches scaled versions for preview and visualization | 30-40% | 70-90% |
-| Disk Cache | Persists frequently accessed items to disk | 10-15% | 80-95% |
-| CDN Integration | External caching of public results | 5-10% | 95-100% |
+| Cache Level               | Description                                          | Hit Rate | Latency Reduction |
+|---------------------------|------------------------------------------------------|----------|-------------------|
+| In-memory Result Cache    | Caches complete results for repeat requests          | 15-25%   | 95-100%           |
+| Intermediate Result Cache | Stores partial processing results for reuse          | 20-30%   | 40-60%            |
+| Thumbnail Cache           | Caches scaled versions for preview and visualization | 30-40%   | 70-90%            |
+| Disk Cache                | Persists frequently accessed items to disk           | 10-15%   | 80-95%            |
+| CDN Integration           | External caching of public results                   | 5-10%    | 95-100%           |
 
 For detailed caching implementation, see Caching Strategy.
 
@@ -147,13 +149,13 @@ For detailed caching implementation, see Caching Strategy.
 
 ### Operation Performance by Image Size
 
-| Operation | 512×512 | 1024×1024 | 2048×2048 | 4096×4096 |
-|-----------|---------|-----------|-----------|-----------|
-| Gaussian Blur | 12ms | 45ms | 170ms | 650ms |
-| Color Adjustment | 8ms | 30ms | 110ms | 420ms |
-| Edge Detection | 15ms | 55ms | 200ms | 780ms |
-| Neural Vectorization | 950ms | 3,200ms | 12,500ms | 48,000ms |
-| SVG Generation | 180ms | 720ms | 2,900ms | 11,000ms |
+| Operation            | 512×512 | 1024×1024 | 2048×2048 | 4096×4096 |
+|----------------------|---------|-----------|-----------|-----------|
+| Gaussian Blur        | 12ms    | 45ms      | 170ms     | 650ms     |
+| Color Adjustment     | 8ms     | 30ms      | 110ms     | 420ms     |
+| Edge Detection       | 15ms    | 55ms      | 200ms     | 780ms     |
+| Neural Vectorization | 950ms   | 3,200ms   | 12,500ms  | 48,000ms  |
+| SVG Generation       | 180ms   | 720ms     | 2,900ms   | 11,000ms  |
 
 *Measured on reference hardware: 8-core CPU @ 3.5GHz, 16GB RAM, NVIDIA RTX 3060*
 
@@ -161,11 +163,11 @@ For detailed caching implementation, see Caching Strategy.
 
 | Concurrency | Images/Second (512×512) | Images/Second (1024×1024) | Memory Usage |
 |-------------|-------------------------|---------------------------|--------------|
-| 1 | 45 | 12 | 0.8GB |
-| 4 | 160 | 42 | 2.2GB |
-| 8 | 280 | 75 | 4.5GB |
-| 16 | 320 | 85 | 9.0GB |
-| 32 | 340 | 90 | 17.5GB |
+| 1           | 45                      | 12                        | 0.8GB        |
+| 4           | 160                     | 42                        | 2.2GB        |
+| 8           | 280                     | 75                        | 4.5GB        |
+| 16          | 320                     | 85                        | 9.0GB        |
+| 32          | 340                     | 90                        | 17.5GB       |
 
 *Test conditions: Basic image processing chain (resize, color adjustment, sharpening)*
 
@@ -185,6 +187,7 @@ graph LR
 ```
 
 Memory usage reduction over software versions:
+
 - v1.0: Baseline
 - v1.2: 35% reduction through tiled processing
 - v1.5: Additional 25% reduction through format optimization
@@ -224,13 +227,13 @@ performance:
 
 The system offers configurable quality-speed tradeoffs:
 
-| Quality Setting | Description | Performance Impact | Visual Quality |
-|-----------------|-------------|-------------------|----------------|
-| ultra | Maximum quality, no compromises | Baseline | Reference |
-| high | Visually indistinguishable from ultra | 2-3× faster | 99% of reference |
-| balanced | Default setting, good tradeoff | 5-8× faster | 95% of reference |
-| fast | Prioritizes performance | 10-15× faster | 90% of reference |
-| draft | Maximum performance | 20-30× faster | 80% of reference |
+| Quality Setting | Description                           | Performance Impact | Visual Quality   |
+|-----------------|---------------------------------------|--------------------|------------------|
+| ultra           | Maximum quality, no compromises       | Baseline           | Reference        |
+| high            | Visually indistinguishable from ultra | 2-3× faster        | 99% of reference |
+| balanced        | Default setting, good tradeoff        | 5-8× faster        | 95% of reference |
+| fast            | Prioritizes performance               | 10-15× faster      | 90% of reference |
+| draft           | Maximum performance                   | 20-30× faster      | 80% of reference |
 
 ### Automatic Profiling and Tuning
 
@@ -296,13 +299,13 @@ For low-latency requirements:
 
 ### Hardware Recommendations
 
-| Use Case | Recommended Hardware | Notes |
-|----------|----------------------|-------|
-| Development | 4+ cores, 16GB+ RAM | GPU optional but helpful |
-| Small Production | 8+ cores, 32GB+ RAM, SSD | Entry-level GPU recommended |
-| Medium Production | 16+ cores, 64GB+ RAM, NVMe | Mid-range GPU (RTX 3060+) |
-| Large Production | 32+ cores, 128GB+ RAM, RAID | High-end GPU or multiple GPUs |
-| Enterprise | Distributed processing cluster | Multiple specialized nodes |
+| Use Case          | Recommended Hardware           | Notes                         |
+|-------------------|--------------------------------|-------------------------------|
+| Development       | 4+ cores, 16GB+ RAM            | GPU optional but helpful      |
+| Small Production  | 8+ cores, 32GB+ RAM, SSD       | Entry-level GPU recommended   |
+| Medium Production | 16+ cores, 64GB+ RAM, NVMe     | Mid-range GPU (RTX 3060+)     |
+| Large Production  | 32+ cores, 128GB+ RAM, RAID    | High-end GPU or multiple GPUs |
+| Enterprise        | Distributed processing cluster | Multiple specialized nodes    |
 
 ### Code Examples
 

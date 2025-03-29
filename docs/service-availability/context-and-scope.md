@@ -25,7 +25,8 @@ The application depends on at least one service being available to respond to us
 3. **Fallback Path**: Transformers models (always available, used when other services fail)
 
 !!! note
-    The application is designed to function even when the primary service (Gemini API) is unavailable, by automatically failing over to alternative services.
+The application is designed to function even when the primary service (Gemini API) is unavailable, by automatically
+failing over to alternative services.
 
 ## System Boundaries
 

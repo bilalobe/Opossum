@@ -2,7 +2,12 @@
 
 ## Overview
 
-To ensure optimal performance and fair usage for all users, Opossum Search implements rate limiting across all API endpoints. This document outlines the rate limit policies, quotas, and best practices for handling rate-limiting scenarios. For a list of available API routes, see [API Routes](routes.md). For detailed information about request and response formats, see [Request/Response Documentation](request-response.md). For error code details, see [Error Codes](error-codes.md). To learn about real-time notifications, refer to [Webhooks](webhooks.md). For system status and component health, see [Health Endpoints](health-endpoints.md).
+To ensure optimal performance and fair usage for all users, Opossum Search implements rate limiting across all API
+endpoints. This document outlines the rate limit policies, quotas, and best practices for handling rate-limiting
+scenarios. For a list of available API routes, see [API Routes](routes.md). For detailed information about request and
+response formats, see [Request/Response Documentation](request-response.md). For error code details,
+see [Error Codes](error-codes.md). To learn about real-time notifications, refer to [Webhooks](webhooks.md). For system
+status and component health, see [Health Endpoints](health-endpoints.md).
 
 ## Rate Limit Structure
 
@@ -15,24 +20,24 @@ Opossum Search uses a tiered rate limiting structure based on:
 
 ## Default Rate Limits
 
-| Plan | Requests per Minute | Concurrent Requests | Daily Quota |
-|------|---------------------|---------------------|-------------|
-| Basic | 60 | 5 | 10,000 |
-| Professional | 300 | 20 | 50,000 |
-| Enterprise | 1,200 | 100 | Customizable |
+| Plan         | Requests per Minute | Concurrent Requests | Daily Quota  |
+|--------------|---------------------|---------------------|--------------|
+| Basic        | 60                  | 5                   | 10,000       |
+| Professional | 300                 | 20                  | 50,000       |
+| Enterprise   | 1,200               | 100                 | Customizable |
 
 ## Endpoint-Specific Limits
 
 Different endpoints have different resource requirements and corresponding rate limits:
 
 | Endpoint Category | Basic (RPM) | Professional (RPM) | Enterprise (RPM) |
-|-------------------|-------------|-------------------|------------------|
-| Search | 60 | 300 | 1,200 |
-| Image Analysis | 20 | 100 | 400 |
-| SVG Generation | 30 | 150 | 600 |
-| Conversation | 40 | 200 | 800 |
-| Configuration | 15 | 60 | 240 |
-| Health/Status | 120 | 600 | 2,400 |
+|-------------------|-------------|--------------------|------------------|
+| Search            | 60          | 300                | 1,200            |
+| Image Analysis    | 20          | 100                | 400              |
+| SVG Generation    | 30          | 150                | 600              |
+| Conversation      | 40          | 200                | 800              |
+| Configuration     | 15          | 60                 | 240              |
+| Health/Status     | 120         | 600                | 2,400            |
 
 RPM = Requests Per Minute
 
@@ -40,35 +45,36 @@ RPM = Requests Per Minute
 
 Different AI models have different resource requirements:
 
-| Model | Basic (RPM) | Professional (RPM) | Enterprise (RPM) |
-|-------|-------------|-------------------|------------------|
-| Gemini | 30 | 150 | 600 |
-| Ollama | 60 | 300 | 1,200 |
-| Local Models | 120 | 600 | 2,400 |
+| Model        | Basic (RPM) | Professional (RPM) | Enterprise (RPM) |
+|--------------|-------------|--------------------|------------------|
+| Gemini       | 30          | 150                | 600              |
+| Ollama       | 60          | 300                | 1,200            |
+| Local Models | 120         | 600                | 2,400            |
 
 ## Bulk Operation Limits
 
 For bulk operations:
 
-| Operation | Max Items Per Request | Max Requests Per Hour |
-|-----------|------------------------|----------------------|
-| Multi-Search | 10 | 100 |
-| Batch Image Analysis | 5 | 50 |
-| Bulk SVG Generation | 20 | 200 |
+| Operation            | Max Items Per Request | Max Requests Per Hour |
+|----------------------|-----------------------|-----------------------|
+| Multi-Search         | 10                    | 100                   |
+| Batch Image Analysis | 5                     | 50                    |
+| Bulk SVG Generation  | 20                    | 200                   |
 
 ## Rate Limit Headers
 
 Each API response includes rate limit information in the headers:
 
-| Header | Description |
-|--------|-------------|
-| `X-Rate-Limit-Limit` | The rate limit ceiling for the given endpoint |
-| `X-Rate-Limit-Remaining` | The number of requests left for the time window |
-| `X-Rate-Limit-Reset` | The time at which the current rate limit window resets in UTC epoch seconds |
-| `X-Rate-Limit-Used` | The number of requests made in the current time window |
-| `X-Rate-Limit-Resource` | The resource being rate-limited (e.g., "search", "model:gemini") |
+| Header                   | Description                                                                 |
+|--------------------------|-----------------------------------------------------------------------------|
+| `X-Rate-Limit-Limit`     | The rate limit ceiling for the given endpoint                               |
+| `X-Rate-Limit-Remaining` | The number of requests left for the time window                             |
+| `X-Rate-Limit-Reset`     | The time at which the current rate limit window resets in UTC epoch seconds |
+| `X-Rate-Limit-Used`      | The number of requests made in the current time window                      |
+| `X-Rate-Limit-Resource`  | The resource being rate-limited (e.g., "search", "model:gemini")            |
 
 Example headers:
+
 ```
 X-Rate-Limit-Limit: 60
 X-Rate-Limit-Remaining: 45
@@ -112,19 +118,19 @@ The API may also include a `Retry-After` header indicating the number of seconds
 ### Best Practices
 
 1. **Implement backoff strategies**:
-   - Use exponential backoff with jitter
-   - Respect the `Retry-After` header when provided
-   - Limit maximum retry attempts
+    - Use exponential backoff with jitter
+    - Respect the `Retry-After` header when provided
+    - Limit maximum retry attempts
 
 2. **Optimize request patterns**:
-   - Batch requests when possible using bulk endpoints
-   - Cache responses for frequently accessed data
-   - Prioritize critical requests when nearing limits
+    - Batch requests when possible using bulk endpoints
+    - Cache responses for frequently accessed data
+    - Prioritize critical requests when nearing limits
 
 3. **Monitor usage**:
-   - Track rate limit headers in responses
-   - Set up alerts for approaching limits
-   - Use the dashboard to monitor historical usage
+    - Track rate limit headers in responses
+    - Set up alerts for approaching limits
+    - Use the dashboard to monitor historical usage
 
 ### Example Backoff Implementation
 
@@ -201,12 +207,12 @@ Opossum Search implements several rate limiting algorithms:
 
 Rate limits may vary by region due to infrastructure differences:
 
-| Region | Adjustment Factor |
-|--------|------------------|
-| us-east | 1.0x (baseline) |
-| us-west | 1.0x |
-| eu-central | 0.9x |
-| ap-southeast | 0.8x |
+| Region       | Adjustment Factor |
+|--------------|-------------------|
+| us-east      | 1.0x (baseline)   |
+| us-west      | 1.0x              |
+| eu-central   | 0.9x              |
+| ap-southeast | 0.8x              |
 
 ## Custom Rate Limit Plans
 

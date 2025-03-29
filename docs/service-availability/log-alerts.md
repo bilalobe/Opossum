@@ -91,7 +91,8 @@ class ServiceLogger:
 | All Services Down    | No available AI services                | Critical | Immediate     |
 
 !!! warning
-    Ensure that the alert triggers are configured correctly to promptly notify the operations team of any service disruptions or potential issues.
+Ensure that the alert triggers are configured correctly to promptly notify the operations team of any service
+disruptions or potential issues.
 
 ## Notification Channels
 
