@@ -61,71 +61,79 @@ markdown_extensions:
 # Navigation structure
 nav:
   - Home: index.md
-  - Technical & Development:
-    - Architecture:
-      - System Architecture Overview: technical/system-architecture-overview.md
-    - Core Components:
-      - Redis Caching Architecture: technical/redis-caching-architecture.md
-      - Hybrid Model Selection: technical/hybrid-model-selection.md
-      - Image Processing Pipeline: technical/image-processing-pipeline.md
-      - GraphQL API: technical/graphql-api.md
-      - OpenTelemetry Integration: technical/opentelemetry-integration.md
-      - SVG Markup: technical/svg-markup.md
-      - DevOps Guide: technical/devops-guide.md
-    - Development Workflow:
-      - Getting Started: technical/getting-started.md
-    - Operations:
-      - Security Model: technical/security-model.md
-      - Error Handling & Resilience: technical/error-handling-resilience.md
-      - Bot User Simulation: technical/bot-user-simulation.md
-  - Service Availability:
-    - Context and Scope: service-availability/context-and-scope.md
-    - Quality Requirements: service-availability/quality-requirements.md
-    - Architecture Constraints: service-availability/architecture-constraints.md
-    - Availability Monitoring: service-availability/availability-monitoring.md
-    - Error Handling: service-availability/service-outage.md
-    - Rate Limiting: service-availability/rate-limiting-throttling.md
-    - Logging and Alerts: service-availability/log-alerts.md
-    - Testing and Validation: service-availability/testing-validation.md
-  - Conversation Management:
-    - Topic Detection: conversation/topic-detection.md
-    - Conversation Flow: conversation/conversation-flow.md
-    - Response Generation: conversation/response-generation.md
-    - NLP Components: conversation/nlp-components.md
-    - Markov Chain Text: conversation/markov-generation.md
-  - Image Processing:
-    - Overview: image-processing/overview.md
-    - Effects and Filters: image-processing/effects.md
-    - SVG Generation: image-processing/svg-generation.md
-    - Performance Optimization: image-processing/optimization.md
-    - Caching Strategy: image-processing/caching.md
-  - Model Integration:
-    - Architecture: model-integration/architecture.md
-    - Backend Selection: model-integration/backend-selection.md
-    - Capability Matrix: model-integration/capability-matrix.md
-    - Provider Integration: model-integration/providers.md
-    - Model Configuration: model-integration/configuration.md
-  - API Reference:
-    - Getting Started: api/getting-started.md
-    - Routes: api/routes.md
-    - Request/Response: api/request-response.md
-    - Error Codes: api/error-codes.md
-    - Rate Limits: api/rate-limits.md
-    - Webhook Integration: api/webhooks.md
-    - Health Endpoints: api/health-endpoints.md
-    - Compliance: api/compliance.md
+  - Getting Started:
+      - First Steps: technical/getting-started.md
+      - System Overview: technical/system-architecture-overview.md
+      - API Reference: api/getting-started.md
+      - Developer Quickstart: technical/devops-guide.md
+  
+  - Core Components:
+      - Architecture:
+          - System Architecture: technical/system-architecture-overview.md
+          - GraphQL API: technical/graphql-api.md
+          - Security Model: technical/security-model.md
+      - Model Integration:
+          - Architecture: model-integration/architecture.md
+          - Backend Selection: model-integration/backend-selection.md
+          - Capability Matrix: model-integration/capability-matrix.md
+          - Provider Integration: model-integration/providers.md
+          - Configuration: model-integration/configuration.md
+          - Hybrid Selection: technical/hybrid-model-selection.md
+      - Service Availability:
+          - Context and Scope: service-availability/context-and-scope.md
+          - Quality Requirements: service-availability/quality-requirements.md
+          - Architecture Constraints: service-availability/architecture-constraints.md
+          - Availability Monitoring: service-availability/availability-monitoring.md
+          - Error Handling: service-availability/service-outage.md
+      - Resilience Patterns:
+          - Core Strategies: technical/resilience-patterns.md
+          - Error Handling: technical/error-handling-resilience.md
+          - Rate Limiting: service-availability/rate-limiting-throttling.md
+          - Logging and Alerts: service-availability/log-alerts.md
+          - Testing and Validation: service-availability/testing-validation.md
+  
   - Features:
-    - Opossum National Day: features/national-day.md
-    - Easter Eggs: features/easter-eggs.md
-    - Special Events: features/special-events.md
-    - Background Stories: features/background-stories.md
-    - Service Visualizations: features/service-vizualizations.md
+      - Conversation:
+          - Topic Detection: conversation/topic-detection.md
+          - Conversation Flow: conversation/conversation-flow.md
+          - Response Generation: conversation/response-generation.md
+          - NLP Components: conversation/nlp-components.md
+          - Markov Generation: conversation/markov-generation.md
+      - Image Processing:
+          - Overview: image-processing/overview.md
+          - Effects and Filters: image-processing/effects.md
+          - SVG Generation: image-processing/svg-generation.md
+          - Performance Optimization: image-processing/optimization.md
+          - Caching Strategy: image-processing/caching.md
+      - Visualizations & Fun:
+          - Service Visualizations: features/service-vizualizations.md
+          - National Opossum Day: features/national-day.md
+          - Easter Eggs: features/easter-eggs.md
+          - Special Events: features/special-events.md
+          - Background Stories: features/background-stories.md
+  
+  - Technical Reference:
+      - Infrastructure:
+          - Redis Caching: technical/redis-caching-architecture.md
+          - Image Pipeline: technical/image-processing-pipeline.md
+          - OpenTelemetry: technical/opentelemetry-integration.md
+          - SVG Markup: technical/svg-markup.md
+          - Bot User Simulation: technical/bot-user-simulation.md
+          - Optimization Strategies: infrastructure/optimization-strategies.md
+      - API Documentation:
+          - Routes: api/routes.md
+          - Request/Response: api/request-response.md
+          - OAuth Configuration: api/oauth-configuration.md
+          - Error Codes: api/error-codes.md
+          - Rate Limits: api/rate-limits.md
+          - Webhook Integration: api/webhooks.md
+          - Health Endpoints: api/health-endpoints.md
+          - Compliance: api/compliance.md
+  
   - About:
-    - Project History: about/history.md
-    - Team: about/team.md
-    - Roadmap: about/roadmap.md
-  - Infrastructure:
-    - Optimization Strategies: infrastructure/optimization-strategies.md
+      - Project History: about/history.md
+      - Team: about/team.md
+      - Roadmap: about/roadmap.md
 
 # Plugins
 plugins:
