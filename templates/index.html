@@ -26,6 +26,7 @@
         <div class="svg-option" data-type="service_status">Service Status</div>
         <div class="svg-option" data-type="failover_process">Failover Process</div>
         <div class="svg-option" data-type="capability_degradation">Capability Levels</div>
+        <div class="svg-option" data-type="text_to_svg">Text to SVG</div>
     </div>
     
     <!-- Status Dashboard -->
@@ -555,6 +556,12 @@
                 fetchServiceStatus();
                 // Show the dashboard
                 document.getElementById('status-dashboard').style.display = 'block';
+            } else if (svgType === 'text_to_svg') {
+                // For text-to-SVG, prompt the user for a description
+                const prompt = window.prompt("Enter a description for your SVG visualization:", "An opossum playing with a keyboard");
+                if (prompt) {
+                    generateTextToSVG(prompt);
+                }
             } else {
                 // For other visualization types, use the existing function
                 generateSVGVisualization(svgType);
@@ -565,6 +572,57 @@
             svgButton.style.backgroundColor = '#34a853';
         });
     });
+    
+    async function generateTextToSVG(prompt) {
+        const mutation = `
+            mutation GenerateSVG($input: SVGGenerationInput!) {
+                generate_svg(input: $input) {
+                    svg_content
+                    base64_image
+                    metadata
+                }
+            }
+        `;
+        
+        const variables = {
+            input: {
+                prompt: prompt,
+                style: "default"
+            }
+        };
+        
+        try {
+            addMessage("Generating SVG from text description...", "bot", true);
+            
+            const data = await graphqlRequest(mutation, variables);
+            
+            // Remove typing indicator
+            const typingIndicator = chatDisplay.querySelector('.bot-typing');
+            if (typingIndicator) {
+                chatDisplay.removeChild(typingIndicator);
+            }
+            
+            if (data.generate_svg) {
+                // Display SVG
+                addSVGMessage(data.generate_svg.svg_content, data.generate_svg.base64_image);
+                
+                // Add explanation
+                addMessage(`Here's a visualization based on your prompt: "${prompt}"`, "bot");
+            } else {
+                addMessage("Sorry, I couldn't generate an SVG visualization for that prompt.", "bot");
+            }
+        } catch (error) {
+            console.error('Error generating SVG:', error);
+            
+            // Remove typing indicator
+            const typingIndicator = chatDisplay.querySelector('.bot-typing');
+            if (typingIndicator) {
+                chatDisplay.removeChild(typingIndicator);
+            }
+            
+            addMessage("Sorry, there was an error generating the visualization.", "bot");
+        }
+    }
     
     // Service Status Dashboard functionality
     let autoRefreshInterval = null;
