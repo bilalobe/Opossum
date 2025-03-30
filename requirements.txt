@@ -8,6 +8,7 @@ transformers
 requests~=2.32.3
 dotenv~=0.9.9
 psutil~=5.9.5
+
 # Optional dependencies based on backend choice
 google-generativeai
 
@@ -53,3 +54,10 @@ prometheus-client>=0.19.0
 pytest~=8.3.5
 pytest-cov==6.0.0
 promise~=2.3
+
+# Model Optimization
+optimum>=1.16.1
+optimum[exporters]>=1.16.1
+onnx>=1.15.0
+onnxruntime>=1.16.3
+torch>=2.2.0
