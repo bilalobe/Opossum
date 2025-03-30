@@ -194,6 +194,53 @@ The system uses a three-stage pipeline:
 2. **Detail Enhancement** - Leverages image diffusion models to add visual details (optional)
 3. **SVG Optimization** - Optimizes vector paths using VAE models
 
+### Model Quantization
+
+To optimize performance and memory usage, Opossum Search supports model quantization for Chat2SVG:
+
+#### Quantization Options
+
+| Precision | Description | Memory Reduction | Quality Impact |
+|-----------|-------------|------------------|----------------|
+| `fp32`    | Full precision (32-bit) | 1.0x (baseline) | None |
+| `fp16`    | Half precision (16-bit) | 0.5x (50% reduction) | Very Low |
+| `int8`    | 8-bit integer quantization | 0.25x (75% reduction) | Low |
+
+#### Configuration
+
+Model quantization can be configured through environment variables or the config file:
+
+```python
+# Production configuration example (in config.py)
+MODEL_QUANTIZATION_ENABLED = True
+MODEL_QUANTIZATION_PRECISION = "int8"  # fp32, fp16, int8
+CHAT2SVG_QUANTIZE_MODELS = True
+CHAT2SVG_QUANTIZATION_PRECISION = "fp16"
+```
+
+#### Quantization Process
+
+The system includes a dedicated script (`scripts/quantize_models.py`) that automatically:
+
+1. Converts Transformers models to optimized ONNX format
+2. Quantizes Chat2SVG PyTorch models to FP16 precision
+3. Validates the quantized models
+4. Configures the application to use the optimized models
+
+This process runs during container startup or can be triggered manually:
+
+```bash
+# Run quantization manually
+python scripts/quantize_models.py --precision int8
+```
+
+#### Benefits of Quantization
+
+- **Reduced Memory Usage**: Up to 75% memory reduction with INT8 quantization
+- **Faster Inference**: Potential speedup, especially on hardware with INT8 support
+- **Container Optimization**: Smaller memory footprint in containerized deployments
+- **Consistent Performance**: Predictable memory usage across different environments
+
 ### Implementation
 
 ```javascript
@@ -227,6 +274,8 @@ Configure Chat2SVG integration through environment variables:
 - `CHAT2SVG_ENABLED` - Enable/disable the Chat2SVG integration (default: true)
 - `CHAT2SVG_DETAIL_ENHANCEMENT` - Enable/disable the detail enhancement stage (default: false)
 - `CHAT2SVG_PATH` - Path to Chat2SVG installation
+- `CHAT2SVG_QUANTIZE_MODELS` - Enable model quantization (default: true)
+- `CHAT2SVG_QUANTIZATION_PRECISION` - Quantization precision (fp32, fp16, int8) (default: fp16)
 
 ### Benefits
 
@@ -234,6 +283,7 @@ Configure Chat2SVG integration through environment variables:
 - **Custom Imagery** - Create unique, tailored visualizations
 - **Artistic Styles** - Support for various visual styles
 - **Complex Scenes** - Ability to generate intricate visual compositions
+- **Resource-Aware** - Adaptive resource usage with model quantization
 
 ### Use Cases
 
@@ -249,19 +299,17 @@ Configure Chat2SVG integration through environment variables:
 mutation {
   generateSVG(
     input: {
-      type: TEXT_TO_SVG
-      prompt: "An opossum playing with a keyboard under moonlight"
-      style: "cartoon"
-      options: {
-        width: 800
-        height: 600
-        detailLevel: MEDIUM
-      }
+      prompt: "An opossum hanging from a tree branch under a full moon",
+      style: "minimalist"
     }
   ) {
     svg_content
     base64_image
-    metadata
+    metadata {
+      generation_time
+      resource_level
+      quantization_level
+    }
   }
 }
 ```
