@@ -15,3 +15,7 @@ __all__ = [
     'services_query_fields',
     'services_mutation_fields'
 ]
+
+
+def schema():
+    return None

@@ -1,6 +1,7 @@
 import logging
 import os
 import platform
+import tempfile
 from typing import List, Dict
 
 from dotenv import load_dotenv
@@ -152,6 +153,69 @@ class BaseConfig:
     API_KEY_REQUIRED = os.getenv("API_KEY_REQUIRED", "False").lower() == "true"
     API_KEY = os.getenv("API_KEY", "")  # Should be set in production
 
+    # Chat2SVG Integration Config
+    CHAT2SVG_ENABLED = os.getenv("CHAT2SVG_ENABLED", "true").lower() == "true"
+    CHAT2SVG_DETAIL_ENHANCEMENT = os.getenv("CHAT2SVG_DETAIL_ENHANCEMENT", "false").lower() == "true"
+    CHAT2SVG_PATH = os.getenv(
+        "CHAT2SVG_PATH", 
+        os.path.join(os.path.expanduser("~"), ".local", "share", "chat2svg")
+    )
+    if not os.path.exists(CHAT2SVG_PATH):
+        logger.warning(f"CHAT2SVG_PATH does not exist or is inaccessible: {CHAT2SVG_PATH}")
+        if BaseConfig.ENV != "production":
+            # Create directory structure only in non-production environments
+            try:
+                os.makedirs(CHAT2SVG_PATH, exist_ok=True)
+                logger.info(f"Created Chat2SVG directory at: {CHAT2SVG_PATH}")
+            except Exception as e:
+                logger.error(f"Failed to create Chat2SVG directory: {e}")
+                
+    # Additional Chat2SVG Configuration
+    CHAT2SVG_CACHE_TTL = int(os.getenv("CHAT2SVG_CACHE_TTL", "3600"))  # 1 hour
+    CHAT2SVG_CACHE_MAXSIZE = int(os.getenv("CHAT2SVG_CACHE_MAXSIZE", "50"))
+    CHAT2SVG_OUTPUT_DIR = os.getenv("CHAT2SVG_OUTPUT_DIR", os.path.join(CHAT2SVG_PATH, 'output'))
+    CHAT2SVG_TEMP_DIR = os.getenv("CHAT2SVG_TEMP_DIR", tempfile.gettempdir())
+    
+    # SVG Generation Settings
+    CHAT2SVG_DEFAULT_STYLE = os.getenv("CHAT2SVG_DEFAULT_STYLE", "modern")
+    CHAT2SVG_DEFAULT_THEME = os.getenv("CHAT2SVG_DEFAULT_THEME", "light")
+    CHAT2SVG_DEFAULT_COLOR_PALETTE = os.getenv("CHAT2SVG_DEFAULT_COLOR_PALETTE", "default")
+    CHAT2SVG_MAX_SVG_SIZE = int(os.getenv("CHAT2SVG_MAX_SVG_SIZE", "1024"))  # Maximum dimension in pixels
+    
+    # Performance and Resource Settings
+    CHAT2SVG_MAX_PROMPT_LENGTH = int(os.getenv("CHAT2SVG_MAX_PROMPT_LENGTH", "500"))
+    CHAT2SVG_TIMEOUT = int(os.getenv("CHAT2SVG_TIMEOUT", "60"))  # Timeout in seconds
+    CHAT2SVG_RESOURCE_MODE = os.getenv("CHAT2SVG_RESOURCE_MODE", "adaptive")  # "adaptive", "high", "medium", "low", "minimal"
+    
+    # Resource thresholds for adaptive mode
+    CHAT2SVG_RESOURCE_THRESHOLDS = {
+        "high": {
+            "cpu_percent_available": int(os.getenv("CHAT2SVG_HIGH_CPU_THRESHOLD", "50")),  # At least 50% CPU available
+            "memory_percent_available": int(os.getenv("CHAT2SVG_HIGH_MEMORY_THRESHOLD", "40")),  # At least 40% memory available
+            "detail_level": "high",
+        },
+        "medium": {
+            "cpu_percent_available": int(os.getenv("CHAT2SVG_MEDIUM_CPU_THRESHOLD", "30")),
+            "memory_percent_available": int(os.getenv("CHAT2SVG_MEDIUM_MEMORY_THRESHOLD", "20")),
+            "detail_level": "medium",
+        },
+        "low": {
+            "cpu_percent_available": int(os.getenv("CHAT2SVG_LOW_CPU_THRESHOLD", "10")),
+            "memory_percent_available": int(os.getenv("CHAT2SVG_LOW_MEMORY_THRESHOLD", "10")),
+            "detail_level": "low",
+        },
+        "minimal": {
+            "cpu_percent_available": int(os.getenv("CHAT2SVG_MINIMAL_CPU_THRESHOLD", "0")),
+            "memory_percent_available": int(os.getenv("CHAT2SVG_MINIMAL_MEMORY_THRESHOLD", "0")),
+            "detail_level": "minimal",
+        }
+    }
+    
+    # Advanced SVG Optimization Settings
+    CHAT2SVG_OPTIMIZATION_LEVEL = int(os.getenv("CHAT2SVG_OPTIMIZATION_LEVEL", "2"))  # 1-3, higher is more intensive
+    CHAT2SVG_PATH_SIMPLIFICATION = float(os.getenv("CHAT2SVG_PATH_SIMPLIFICATION", "0.2"))  # 0.0-1.0
+    CHAT2SVG_ENABLE_ANIMATIONS = os.getenv("CHAT2SVG_ENABLE_ANIMATIONS", "false").lower() == "true"
+
 
 class DevelopmentConfig(BaseConfig):
     """Development configuration."""
@@ -159,6 +223,11 @@ class DevelopmentConfig(BaseConfig):
     TESTING = False
     GRAPHQL_GRAPHIQL = True
     VOYAGER_ENABLED = True
+    # In development, we can use a local path for easier debugging
+    CHAT2SVG_PATH = os.getenv(
+        "CHAT2SVG_PATH", 
+        os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Chat2SVG-main')
+    )
 
 
 class TestingConfig(BaseConfig):
@@ -169,6 +238,8 @@ class TestingConfig(BaseConfig):
     VOYAGER_ENABLED = False
     # Use lightweight model configurations for testing
     PREWARM_GEMINI = False
+    # Disable Chat2SVG in testing by default unless explicitly enabled
+    CHAT2SVG_ENABLED = os.getenv("CHAT2SVG_ENABLED", "false").lower() == "true"
 
 
 class ProductionConfig(BaseConfig):
@@ -180,15 +251,10 @@ class ProductionConfig(BaseConfig):
     API_KEY_REQUIRED = True
     # Require more secure settings
     CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
-
-
-# Configuration dictionary based on environment
-config_map = {
-    'development': DevelopmentConfig,
-    'testing': TestingConfig,
-    'production': ProductionConfig,
-    'default': DevelopmentConfig
-}
-
-# Get the current config based on FLASK_ENV
-Config = config_map.get(os.getenv('FLASK_ENV', 'default'), DevelopmentConfig)
+    # In production, Chat2SVG should be installed properly in a system path
+    CHAT2SVG_PATH = os.getenv(
+        "CHAT2SVG_PATH", 
+        "/opt/chat2svg"
+    )
+    # Set to false by default in production - must be explicitly enabled
+    CHAT2SVG_ENABLED = os.getenv("CHAT2SVG_ENABLED", "false").lower() == "true"

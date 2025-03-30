@@ -1,0 +1,3 @@
+[submodule "vendor/Chat2SVG"]
+	path = vendor/Chat2SVG
+	url = https://github.com/bilalobe/Chat2SVG
