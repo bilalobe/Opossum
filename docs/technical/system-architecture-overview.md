@@ -1,6 +1,6 @@
-# 10. Diagrams and Visuals
+# Diagrams and Visuals
 
-## 10.1 System Architecture Diagram
+## System Architecture Diagram
 
 <!DOCTYPE html>
 <html>
@@ -19,7 +19,7 @@
 
 </html>
 
-## 10.2 Service Monitoring Flowchart
+## Service Monitoring Flowchart
 
 <!DOCTYPE html>
 <html>
@@ -38,7 +38,7 @@
 
 </html>
 
-## 10.3 Failover Process Diagram
+## Failover Process Diagram
 
 <!DOCTYPE html>
 <html>
@@ -57,7 +57,7 @@
 
 </html>
 
-## 10.4 Rate Limit Monitoring Diagram
+## Rate Limit Monitoring Diagram
 
 <!DOCTYPE html>
 <html>
@@ -76,7 +76,7 @@
 
 </html>
 
-## 10.5 Recovery Detection Process
+## Recovery Detection Process
 
 <!DOCTYPE html>
 <html>
@@ -95,7 +95,7 @@
 
 </html>
 
-## 10.6 User Experience Flow
+## User Experience Flow
 
 <!DOCTYPE html>
 <html>
