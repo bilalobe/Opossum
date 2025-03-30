@@ -258,3 +258,34 @@ class ProductionConfig(BaseConfig):
     )
     # Set to false by default in production - must be explicitly enabled
     CHAT2SVG_ENABLED = os.getenv("CHAT2SVG_ENABLED", "false").lower() == "true"
+
+    # Model Quantization Settings
+    MODEL_QUANTIZATION_ENABLED = os.getenv("MODEL_QUANTIZATION_ENABLED", "true").lower() == "true"
+    MODEL_QUANTIZATION_PRECISION = os.getenv("MODEL_QUANTIZATION_PRECISION", "int8")  # fp32, fp16, int8
+    QUANTIZED_MODEL_DIR = os.getenv(
+        "QUANTIZED_MODEL_DIR",
+        os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "quantized_models")
+    )
+    
+    # Transformers Quantization
+    TRANSFORMERS_CACHE = os.getenv(
+        "TRANSFORMERS_CACHE",
+        os.path.join(os.path.expanduser("~"), ".cache", "huggingface", "hub")
+    )
+    TRANSFORMERS_FORCE_CPU = os.getenv("TRANSFORMERS_FORCE_CPU", "false").lower() == "true"
+    
+    # Chat2SVG Quantization
+    CHAT2SVG_QUANTIZE_MODELS = os.getenv("CHAT2SVG_QUANTIZE_MODELS", "true").lower() == "true"
+    CHAT2SVG_QUANTIZATION_PRECISION = os.getenv("CHAT2SVG_QUANTIZATION_PRECISION", "fp16")  # fp32 or fp16 only
+
+    @classmethod
+    def get_quantization_config(cls):
+        """Get model quantization configuration."""
+        return {
+            "enabled": cls.MODEL_QUANTIZATION_ENABLED,
+            "precision": cls.MODEL_QUANTIZATION_PRECISION,
+            "transformers_cache": cls.TRANSFORMERS_CACHE,
+            "chat2svg_path": cls.CHAT2SVG_PATH,
+            "output_dir": cls.QUANTIZED_MODEL_DIR,
+            "force_cpu": cls.TRANSFORMERS_FORCE_CPU,
+        }
