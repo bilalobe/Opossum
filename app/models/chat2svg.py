@@ -1,678 +1,779 @@
-"""Chat2SVG Integration for advanced SVG generation capabilities.
+"""Chat2SVG Integration with Optimized Pipeline Controller.
 
-This module provides integration with the Chat2SVG project to generate
-high-quality SVG graphics from text descriptions using a three-stage pipeline:
-1. Template Generation with LLMs
-2. Detail Enhancement with diffusion models
-3. SVG Optimization with VAE models
+Applies principles of resource monitoring, greedy stage allocation,
+circuit breaking, dynamic parameter tuning, and multi-request optimization
+to improve performance and resilience.
 """
 import asyncio
-import os
-import sys
-import logging
 import base64
-import tempfile
-import re
-import datetime
 import hashlib
-import psutil
-from typing import Dict, Any, Optional
+import logging
+import os
+import re
+import shutil
+import sys
+import tempfile
+import time
+from dataclasses import dataclass
+from datetime import datetime
+from enum import Enum
+from typing import Dict, List, Optional, Set, Tuple
 
-import cairosvg
-import yaml
+try:
+    import psutil
+except ImportError:
+    psutil = None
+    logging.warning("psutil not installed. Resource detection will be limited.")
 
-from app.config import Config
-from app.utils.infrastructure.cache import get_from_cache, add_to_cache
+try:
+    import torch
+except ImportError:
+    torch = None
+    logging.debug("torch not installed. GPU detection will be skipped.")
+
+try:
+    import cairosvg
+except ImportError:
+    cairosvg = None
+    logging.warning("cairosvg not installed, SVG to PNG conversion will fail")
+
+# Assuming Config and cache utils are in the parent directory structure
+try:
+    from app.config import Config
+    from app.utils.infrastructure.cache import get_from_cache, add_to_cache
+except ImportError:
+    logging.warning("Could not import from app.* - using fallback Config and cache stubs.")
+    class Config:
+        CHAT2SVG_PATH = os.path.expanduser("~/vendor/Chat2SVG")
+        CHAT2SVG_ENABLED = True
+        CHAT2SVG_DETAIL_ENHANCEMENT = True
+        CHAT2SVG_OPTIMIZATION = True
+        CHAT2SVG_QUANTIZE_MODELS = False
+        CHAT2SVG_QUANTIZATION_PRECISION = "fp16"
+        CHAT2SVG_CACHE_TTL = 3600
+        CHAT2SVG_TIMEOUT = 180
+        CHAT2SVG_STREAMING = False
+        CHAT2SVG_CLIENT_RENDERING = False
+        # Add resource thresholds from BaseConfig
+        CHAT2SVG_RESOURCE_THRESHOLDS = {
+            "high": {"cpu_percent_available": 50, "memory_percent_available": 40},
+            "medium": {"cpu_percent_available": 30, "memory_percent_available": 20},
+            "low": {"cpu_percent_available": 10, "memory_percent_available": 10},
+            "minimal": {"cpu_percent_available": 0, "memory_percent_available": 0}
+        }
+
+    _cache = {}
+    def get_from_cache(key): return _cache.get(key)
+    def add_to_cache(key, value, ttl): _cache[key] = value
 
 logger = logging.getLogger(__name__)
 
-# Resource threshold configurations
-RESOURCE_THRESHOLDS = {
+# Move resource thresholds from constants to Config-based values
+RESOURCE_THRESHOLDS = getattr(Config, 'CHAT2SVG_RESOURCE_THRESHOLDS', {
+    "high": {"cpu": 50, "memory": 40},
+    "medium": {"cpu": 30, "memory": 20},
+    "low": {"cpu": 10, "memory": 10},
+    "minimal": {"cpu": 0, "memory": 0}
+})
+
+STAGE_SPECS = {
+    "template": {"cpu": 0.1, "memory": 0.1, "gpu": 0.0, "vram": 0.1, "impact": 0.6, "latency": 15.0},
+    "detail": {"cpu": 0.4, "memory": 0.4, "gpu": 0.8, "vram": 0.7, "impact": 0.3, "latency": 60.0},
+    "optimize": {"cpu": 0.3, "memory": 0.2, "gpu": 0.3, "vram": 0.4, "impact": 0.1, "latency": 30.0}
+}
+
+PIPELINE_CONFIGS = {
     "high": {
-        "cpu_percent_available": 50,  # At least 50% CPU available
-        "memory_percent_available": 40,  # At least 40% memory available
-        "detail_level": "high",
+        "detail": {"num_inference_steps": 30, "strength": 1.0, "guidance_scale": 7.0, "sam_level": "fine"},
+        "optimize": {"iterations": 1000, "quality_level": "high"}
     },
     "medium": {
-        "cpu_percent_available": 30,
-        "memory_percent_available": 20,
-        "detail_level": "medium",
+        "detail": {"num_inference_steps": 25, "strength": 0.9, "guidance_scale": 6.5, "sam_level": "medium"},
+        "optimize": {"iterations": 700, "quality_level": "medium"}
     },
     "low": {
-        "cpu_percent_available": 10,
-        "memory_percent_available": 10,
-        "detail_level": "low",
+        "detail": {"num_inference_steps": 20, "strength": 0.85, "guidance_scale": 6.0, "sam_level": "coarse"},
+        "optimize": {"iterations": 500, "quality_level": "low"}
     },
     "minimal": {
-        "cpu_percent_available": 0,
-        "memory_percent_available": 0,
-        "detail_level": "minimal",
+        "detail": {},
+        "optimize": {}
     }
 }
 
-class SVGTemplate:
-    """Represents an SVG template generated from a text prompt."""
 
-    def __init__(self, svg_content: str, prompt: str, style: Optional[str] = None):
-        """Initialize an SVG template.
+# --- Helper Functions ---
 
-        Args:
-            svg_content: The SVG content as a string
-            prompt: The original prompt used to generate the SVG
-            style: Optional style guidance used during generation
-        """
-        self.svg_content = svg_content
-        self.prompt = prompt
-        self.style = style or "default"
 
-    def __repr__(self) -> str:
-        """Return a string representation of the SVG template."""
-        return f"SVGTemplate(prompt='{self.prompt[:20]}...', style='{self.style}', size={len(self.svg_content)} bytes)"
+async def _to_thread(func, *args, **kwargs):
+    loop = asyncio.get_running_loop()
+    # Use default executor (ThreadPoolExecutor)
+    return await loop.run_in_executor(None, lambda: func(*args, **kwargs))
 
-    def to_base64(self) -> str:
-        """Convert the SVG to a base64 string representation using cairosvg."""
-        # This is potentially CPU-bound. If it becomes a bottleneck,
-        # consider running it in a separate thread using asyncio.to_thread
-        try:
-            png_data = cairosvg.svg2png(bytestring=self.svg_content.encode('utf-8'))
-            return base64.b64encode(png_data).decode('utf-8')
-        except Exception as e:
-            logger.error(f"Error converting SVG to base64: {str(e)}")
-            # Consider returning a placeholder base64 image or raising error
+def _encode_svg_to_png_base64(svg_content: str) -> str:
+    if cairosvg is None:
+        logger.error("cairosvg is not installed, cannot encode SVG to PNG.")
+        return ""
+    try:
+        if not svg_content:
+            logger.warning("Attempted to encode empty SVG content.")
             return ""
+        # Add explicit width/height if missing, as cairosvg might need it
+        if 'width=' not in svg_content or 'height=' not in svg_content:
+             # Basic check, might need improvement
+             logger.debug("SVG lacks width/height, adding defaults for PNG conversion.")
+             svg_content = re.sub(r'(<svg[^>]*)', r'\1 width="512px" height="512px"', svg_content, count=1)
 
-class PromptManager:
-    """Manages prompts for SVG generation based on YAML configuration."""
+        png_data = cairosvg.svg2png(bytestring=svg_content.encode('utf-8'), output_width=512, output_height=512) # Specify output size
+        return base64.b64encode(png_data).decode('utf-8')
+    except Exception as e:
+        logger.error(f"Error converting SVG to base64 PNG: {e}. SVG start: '{svg_content[:150]}...'")
+        return ""
 
-    def __init__(self, prompts_path: Optional[str] = None):
-        """Initialize the prompt manager with prompts from YAML file."""
-        self.prompts = {}
+async def _read_file_async(filepath: str) -> Optional[str]:
+    try:
+        with open(filepath, "r", encoding='utf-8') as f:
+             content = await _to_thread(f.read)
+        return content
+    except FileNotFoundError:
+        logger.error(f"File not found: {filepath}")
+        return None
+    except Exception as e:
+        logger.error(f"Error reading file {filepath}: {e}")
+        return None
 
-        if not prompts_path:
-            # Default to Chat2SVG's prompts.yaml
-            prompts_path = os.path.join(
-                os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
-                'Chat2SVG-main',
-                'prompts.yaml'
-            )
 
-        try:
-            if os.path.exists(prompts_path):
-                with open(prompts_path, 'r') as f:
-                    self.prompts = yaml.safe_load(f)
-                logger.info(f"Loaded prompts from {prompts_path}")
-            else:
-                logger.warning(f"Prompts file not found at {prompts_path}, using defaults")
-                # Load default prompts
-                self._load_default_prompts()
-        except Exception as e:
-            logger.error(f"Error loading prompts: {str(e)}")
-            self._load_default_prompts()
+# --- Circuit Breaker State ---
+class CircuitState(Enum):
+    CLOSED = "CLOSED"     # Normal operation
+    OPEN = "OPEN"         # Not accepting requests
+    HALF_OPEN = "HALF_OPEN" # Testing recovery
 
-    def _load_default_prompts(self):
-        """Load default prompts if YAML file is unavailable."""
-        self.prompts = {
-            "system": "You are a vector graphics designer tasked with creating SVG from text.",
-            "expand_text_prompt": "Expand the following prompt into a detailed description: {prompt}",
-            "write_svg_code": "Create SVG code for the following description: {description}",
-            "svg_refine": "Refine the following SVG code: {svg_content}"
-        }
+class PipelineError(Exception):
+    """Custom exception for pipeline stage failures."""
+    pass
 
-    def get_prompt(self, prompt_type: str, **kwargs) -> str:
-        """Get a prompt of a specific type with variables filled in.
+class PipelineState:
+    """Holds the intermediate data passed between stages in memory."""
+    def __init__(self, prompt: str, style: Optional[str]):
+        self.prompt: str = prompt
+        self.style: Optional[str] = style
+        self.target_name: str = _sanitize_filename(prompt)
         
-        Supports both {key} format and <KEY> format placeholders.
+        # Stage outputs (data, not paths)
+        self.template_svg: Optional[str] = None
+        self.enhanced_svg: Optional[str] = None
+        self.target_png_bytes: Optional[bytes] = None
+        self.optimized_svg: Optional[str] = None
         
-        Args:
-            prompt_type: The type of prompt to retrieve
-            **kwargs: Variables to substitute in the prompt
+        # Resource info
+        self.resource_level: str = "low"
+        self.gpu_available: bool = False
+        self.vram_available: Optional[float] = None
         
-        Returns:
-            Formatted prompt string
-        """
-        prompt_template = self.prompts.get(prompt_type, "")
-        if not prompt_template:
-            logger.warning(f"Prompt type '{prompt_type}' not found")
-            return ""
-        
-        # Make a copy of the template to avoid modifying the original
-        formatted_prompt = prompt_template
-        
-        # First try standard Python formatting for {key} style placeholders
-        try:
-            formatted_prompt = prompt_template.format(**kwargs)
-        except KeyError as e:
-            logger.debug(f"Standard format placeholders not matched: {e}")
-            # If standard formatting fails, we'll try the <KEY> format next
-            pass
-        except Exception as e:
-            logger.warning(f"Error in standard format: {e}")
-        
-        # Then handle <KEY> style placeholders (Chat2SVG style)
-        for key, value in kwargs.items():
-            uppercase_key = key.upper()
-            placeholder = f"<{uppercase_key}>"
-            if placeholder in formatted_prompt:
-                formatted_prompt = formatted_prompt.replace(placeholder, str(value))
-        
-        # Check if any <KEY> placeholders remain unfilled
-        remaining_placeholders = re.findall(r'<[A-Z_]+>', formatted_prompt)
-        if remaining_placeholders:
-            logger.warning(f"Unfilled placeholders in prompt: {remaining_placeholders}")
-        
-        return formatted_prompt
+        # Pipeline state
+        self.pipeline_config: Dict[str, Dict] = {}
+        self.stages_to_run: List[str] = []
+        self.stages_run: List[str] = []
+        self.stage_durations: Dict[str, float] = {}
+        self.error: Optional[str] = None
+        self.error_detail: Optional[str] = None
+        self.fallback_used: bool = False
+        self.is_half_open_trial: bool = False
+        self.resource_allocation: Optional[Dict[str, float]] = None
 
-    def __repr__(self) -> str:
-        """Return a string representation of the prompt manager."""
-        return f"PromptManager(types={list(self.prompts.keys())})"
+    def update_stage_duration(self, stage_name: str, duration: float):
+        """Record the duration of a stage execution."""
+        self.stage_durations[stage_name] = duration
+        
+    def set_error(self, message: str, detail: Optional[str] = None):
+        """Set error with optional detailed information."""
+        self.error = message
+        if detail:
+            self.error_detail = detail.strip()
+            if len(self.error_detail) > 1000:  # Truncate very long error details
+                self.error_detail = self.error_detail[:997] + "..."
 
 
 class Chat2SVGGenerator:
-    """Integration with Chat2SVG for advanced SVG generation from text descriptions."""
+    """Orchestrates the optimized Chat2SVG pipeline with circuit breaker."""
 
     def __init__(self):
-        """Initialize the Chat2SVG generator with proper paths and configuration."""
-        # Base path to Chat2SVG directory
-        self.chat2svg_path = Config.CHAT2SVG_PATH
+        """Initialize the Chat2SVG generator."""
+        self.chat2svg_path = getattr(Config, 'CHAT2SVG_PATH', os.path.expanduser("~/vendor/Chat2SVG"))
+        self.enabled = getattr(Config, 'CHAT2SVG_ENABLED', False)
         
-        # Default script paths based on standard installation structure
+        if not self.chat2svg_path or not os.path.isdir(self.chat2svg_path):
+            logger.error(f"Config.CHAT2SVG_PATH ('{self.chat2svg_path}') is not a valid directory.")
+            self._is_available = False
+            self.enabled = False
+            return
+
+        # Script paths
         self.template_gen_script = os.path.join(self.chat2svg_path, "1_template_generation", "main.py")
-        
-        # Check for executable scripts (binary/installed mode)
-        self.executable_mode = False
-        executable_path = os.path.join(self.chat2svg_path, "bin", "chat2svg-generate")
-        if os.path.exists(executable_path) and os.access(executable_path, os.X_OK):
-            self.template_gen_script = executable_path
-            self.executable_mode = True
-            logger.info("Using Chat2SVG in executable mode")
-        
-        # Cache configuration
-        self.cache_ttl = Config.CHAT2SVG_CACHE_TTL if hasattr(Config, 'CHAT2SVG_CACHE_TTL') else 3600 # Cache SVGs for 1 hour default
-        
+        self.detail_enhance_script = os.path.join(self.chat2svg_path, "2_detail_enhancement", "main.py")
+        self.optimization_script = os.path.join(self.chat2svg_path, "3_svg_optimization", "main.py")
+
         # Feature flags
-        self.enabled = Config.CHAT2SVG_ENABLED if hasattr(Config, 'CHAT2SVG_ENABLED') else False
-        self.use_detail_enhancement = Config.CHAT2SVG_DETAIL_ENHANCEMENT if hasattr(Config, 'CHAT2SVG_DETAIL_ENHANCEMENT') else False
-        self.use_optimization = Config.CHAT2SVG_OPTIMIZATION if hasattr(Config, 'CHAT2SVG_OPTIMIZATION') else True # Default to simple optimization (base64)
-
+        self.use_detail_enhancement = getattr(Config, 'CHAT2SVG_DETAIL_ENHANCEMENT', False)
+        self.use_optimization = getattr(Config, 'CHAT2SVG_OPTIMIZATION', True)
+        
+        # Resource and performance settings
+        self.max_svg_size = getattr(Config, 'CHAT2SVG_MAX_SVG_SIZE', 1024)
+        self.max_prompt_length = getattr(Config, 'CHAT2SVG_MAX_PROMPT_LENGTH', 500)
+        self.resource_mode = getattr(Config, 'CHAT2SVG_RESOURCE_MODE', 'adaptive')
+        
         # Model quantization settings
-        self.quantize_models = Config.CHAT2SVG_QUANTIZE_MODELS if hasattr(Config, 'CHAT2SVG_QUANTIZE_MODELS') else True
-        self.quantization_precision = Config.CHAT2SVG_QUANTIZATION_PRECISION if hasattr(Config, 'CHAT2SVG_QUANTIZATION_PRECISION') else "int8"
+        self.quantize_models = getattr(Config, 'CHAT2SVG_QUANTIZE_MODELS', False)
+        self.quantization_precision = getattr(Config, 'CHAT2SVG_QUANTIZATION_PRECISION', 'fp16')
         
-        # Available quantization levels
-        self.quantization_levels = {
-            "fp32": {"desc": "Full precision (32-bit)", "memory_reduction": 1.0, "quality_impact": "None"},
-            "fp16": {"desc": "Half precision (16-bit)", "memory_reduction": 0.5, "quality_impact": "Very Low"},
-            "int8": {"desc": "8-bit integer", "memory_reduction": 0.25, "quality_impact": "Low"},
-            "int4": {"desc": "4-bit integer", "memory_reduction": 0.125, "quality_impact": "Medium"}
-        }
+        # Determine quantized model directory
+        _chat2svg_parent_dir = os.path.dirname(os.path.normpath(self.chat2svg_path))
+        self.quantized_model_dir = getattr(Config, 'QUANTIZED_MODEL_DIR', 
+            os.path.join(_chat2svg_parent_dir, "data", "quantized_models"))
+
+        # Cache and timeout settings
+        self.cache_ttl = getattr(Config, 'CHAT2SVG_CACHE_TTL', 3600)
+        self.cache_maxsize = getattr(Config, 'CHAT2SVG_CACHE_MAXSIZE', 50)
+        self.subprocess_timeout = getattr(Config, 'CHAT2SVG_TIMEOUT', 180)
         
-        # Streaming configuration
-        self.streaming_enabled = Config.CHAT2SVG_STREAMING if hasattr(Config, 'CHAT2SVG_STREAMING') else True
-        self.stream_chunk_size = Config.CHAT2SVG_STREAM_CHUNK_SIZE if hasattr(Config, 'CHAT2SVG_STREAM_CHUNK_SIZE') else 10
-        self.min_svg_size_for_streaming = 50000  # Only stream SVGs larger than ~50KB
-        
-        # Client-side rendering configuration
-        self.client_rendering_enabled = Config.CHAT2SVG_CLIENT_RENDERING if hasattr(Config, 'CHAT2SVG_CLIENT_RENDERING') else True
-        self.client_rendering_threshold = Config.CHAT2SVG_CLIENT_RENDERING_THRESHOLD if hasattr(Config, 'CHAT2SVG_CLIENT_RENDERING_THRESHOLD') else 70
-        self.client_max_complexity = Config.CHAT2SVG_CLIENT_MAX_COMPLEXITY if hasattr(Config, 'CHAT2SVG_CLIENT_MAX_COMPLEXITY') else 5000  # Max path data points
+        # Output directories
+        self.output_dir = getattr(Config, 'CHAT2SVG_OUTPUT_DIR', os.path.join(self.chat2svg_path, 'output'))
+        self.temp_dir = getattr(Config, 'CHAT2SVG_TEMP_DIR', tempfile.gettempdir())
 
-        # Subprocess timeout
-        self.subprocess_timeout = Config.CHAT2SVG_TIMEOUT if hasattr(Config, 'CHAT2SVG_TIMEOUT') else 60 # 60 seconds default
+        # Style settings
+        self.default_style = getattr(Config, 'CHAT2SVG_DEFAULT_STYLE', 'modern')
+        self.default_theme = getattr(Config, 'CHAT2SVG_DEFAULT_THEME', 'light')
+        self.default_color_palette = getattr(Config, 'CHAT2SVG_DEFAULT_COLOR_PALETTE', 'default')
+        self.path_simplification = getattr(Config, 'CHAT2SVG_PATH_SIMPLIFICATION', 0.2)
+        self.enable_animations = getattr(Config, 'CHAT2SVG_ENABLE_ANIMATIONS', False)
 
-        # Check if Chat2SVG is installed and configured
-        self._is_available = self.enabled and os.path.exists(self.chat2svg_path) and os.path.exists(self.template_gen_script)
-        if not self.enabled:
-            logger.info("Chat2SVG integration is disabled via configuration.")
-        elif not self._is_available:
-            logger.warning("Chat2SVG directory or main script not found at expected paths: %s, %s", self.chat2svg_path, self.template_gen_script)
-        else:
-            logger.info("Chat2SVG found at: %s", self.chat2svg_path)
-            # Model availability check is basic, full check depends on Chat2SVG scripts
-            self._check_model_availability()
+        # Availability Check
+        scripts_ok = os.path.exists(self.template_gen_script)
+        if self.use_detail_enhancement and not os.path.exists(self.detail_enhance_script):
+            logger.warning(f"Detail enhancement enabled but script not found: {self.detail_enhance_script}")
+            scripts_ok = False
+        if self.use_optimization and not os.path.exists(self.optimization_script):
+            logger.warning(f"Optimization enabled but script not found: {self.optimization_script}")
+            scripts_ok = False
 
-        # Initialize the prompt manager
-        self.prompt_manager = PromptManager()
-        
-        # Log quantization settings
-        if self._is_available and self.quantize_models:
-            quant = self.quantization_levels[self.quantization_precision]
-            logger.info(f"Using {self.quantization_precision} quantization ({quant['desc']}) "
-                       f"for {quant['memory_reduction'] * 100:.1f}% memory usage")
-    
-    def __repr__(self) -> str:
-        """Return a string representation of the generator."""
-        status = "available" if self.is_available() else "unavailable"
-        features = []
-        if self.use_detail_enhancement: features.append("detail_enhancement (stub)")
-        if self.use_optimization: features.append("optimization (stub/simplified)")
+        self._is_available = self.enabled and scripts_ok
 
-        return f"Chat2SVGGenerator(status={status}, features={features})"
+        # Log status and configuration
+        status_msg = "disabled" if not self.enabled else "unavailable (scripts missing)" if not scripts_ok else "enabled"
+        logger.info(f"Chat2SVG status: {status_msg}")
+        if self._is_available:
+            if not self._check_model_availability():
+                logger.warning("Chat2SVG model files might be missing")
+            if self.quantize_models:
+                logger.info(f"Model quantization enabled: {self.quantization_precision}")
+                logger.info(f"Quantized models directory: {self.quantized_model_dir}")
+            logger.info(f"Resource mode: {self.resource_mode}")
+            logger.info(f"Output directory: {self.output_dir}")
 
-    def _check_model_availability(self) -> bool:
-        """Basic check for *some* model files. Full check depends on Chat2SVG scripts."""
-        # This check is very basic and might not cover all dependencies of Chat2SVG.
-        required_paths = [
-            os.path.join(self.chat2svg_path, '3_svg_optimization', 'vae_model', 'cmd_10.pth'),
-            # Add other critical model paths if known
-        ]
-
-        missing = [path for path in required_paths if not os.path.exists(path)]
-
-        if missing:
-            logger.warning(f"Chat2SVG models potentially missing: {missing}")
-            logger.info("Run download/setup scripts in Chat2SVG-main directory if generation fails.")
-            # Don't mark as unavailable solely based on this basic check
-            return False
-
-        return True
+        # Initialize prompt manager
+        self.prompt_manager = PromptManager(os.path.join(self.chat2svg_path, 'prompts.yaml'))
 
     def is_available(self) -> bool:
-        """Check if Chat2SVG is enabled and seems available for use."""
+        """Check if the generator is available for use."""
         return self._is_available
 
+    def _check_model_availability(self) -> bool:
+        """Check for required model files."""
+        missing_files = []
+        
+        # Stage 1 models/configs
+        template_configs = [
+            os.path.join(self.chat2svg_path, "1_template_generation", "config.yaml"),
+            os.path.join(self.chat2svg_path, "1_template_generation", "prompts.yaml")
+        ]
+        
+        # Stage 2 models (if enabled)
+        if self.use_detail_enhancement:
+            detail_models = [
+                os.path.join(self.chat2svg_path, "2_detail_enhancement", "models", "diffusion.pt"),
+                os.path.join(self.chat2svg_path, "2_detail_enhancement", "models", "sam.pt")
+            ]
+            template_configs.extend(detail_models)
+            
+        # Stage 3 models (if enabled)
+        if self.use_optimization:
+            vae_path = os.path.join(self.chat2svg_path, "3_svg_optimization", "vae_model", "cmd_10.pth")
+            if self.quantize_models:
+                # Check quantized model instead
+                quant_suffix = f"_{self.quantization_precision}" if self.quantization_precision != "fp32" else ""
+                vae_path = os.path.join(self.quantized_model_dir, "chat2svg", "3_svg_optimization", 
+                                      "vae_model", f"cmd_10{quant_suffix}.pth")
+            template_configs.append(vae_path)
+            
+        for file_path in template_configs:
+            if not os.path.exists(file_path):
+                missing_files.append(os.path.basename(file_path))
+                
+        if missing_files:
+            logger.warning(f"Missing model/config files: {', '.join(missing_files)}")
+            return False
+            
+        return True
+
+    async def _detect_available_resources(self) -> Dict[str, float]:
+        """Enhanced resource detection including GPU and Swap if available."""
+        resources = {"cpu": 10.0, "memory": 10.0, "swap": 0.0}  # Initialize swap
+        if psutil is None:
+            return resources
+
+        try:
+            cpu_usage = await _to_thread(psutil.cpu_percent, interval=0.1)
+            memory = await _to_thread(psutil.virtual_memory)
+            swap = await _to_thread(psutil.swap_memory)  # Get swap info
+            resources["cpu"] = 100.0 - cpu_usage
+            resources["memory"] = memory.available / memory.total * 100.0
+            resources["swap"] = swap.percent  # Store swap percentage
+
+            if torch is not None and torch.cuda.is_available():
+                try:
+                    with torch.cuda.device(0):
+                        total = torch.cuda.get_device_properties(0).total_memory / (1024**3)
+                        used = torch.cuda.memory_allocated() / (1024**3)
+                        resources["gpu"] = 100.0
+                        resources["vram"] = ((total - used) / total) * 100.0
+                except RuntimeError as e:
+                    logger.warning(f"Runtime error during GPU detection: {e}")
+                except Exception as e:
+                    logger.debug(f"Unexpected GPU detection error: {e}")
+
+            logger.debug(
+                f"Available resources: CPU={resources['cpu']:.1f}%, Mem={resources['memory']:.1f}%, Swap={resources['swap']:.1f}%, GPU={'Yes' if 'gpu' in resources else 'No'}"
+            )  # Updated log
+            return resources
+        except Exception as e:
+            logger.warning(f"Resource detection error: {e}")
+            return resources
+
+    def _configure_pipeline_params(self, state: PipelineState, available_resources: Dict[str, float]):
+        """Dynamic parameter configuration based on available resources."""
+        state.resource_level = self._get_resource_level(available_resources)
+        base_config = PIPELINE_CONFIGS.get(state.resource_level, PIPELINE_CONFIGS["low"])
+        state.pipeline_config = base_config.copy()
+
+        # Dynamic parameter tuning
+        if "detail" in state.pipeline_config:
+            mem_factor = min(max(available_resources.get("memory", 10) / 50.0, 0.0), 1.0)
+            cpu_factor = min(max(available_resources.get("cpu", 10) / 60.0, 0.0), 1.0)
+            gpu_factor = min(max(available_resources.get("gpu", 0) / 70.0, 0.0), 1.0) if "gpu" in available_resources else 0.0
+            
+            # Weighted combination of factors
+            combined_factor = (mem_factor * 0.3 + cpu_factor * 0.3 + gpu_factor * 0.4)
+            
+            # Adjust parameters based on resources
+            steps = max(15, min(35, int(15 + 20 * combined_factor)))
+            strength = max(0.7, min(1.0, 0.7 + 0.3 * combined_factor))
+            guidance = max(5.0, min(7.5, 5.0 + 2.5 * combined_factor))
+            
+            state.pipeline_config["detail"].update({
+                "num_inference_steps": steps,
+                "strength": strength,
+                "guidance_scale": guidance
+            })
+
+        if "optimize" in state.pipeline_config:
+            # Scale optimization iterations based on resources
+            base_iterations = state.pipeline_config["optimize"].get("iterations", 500)
+            scaled_iterations = int(base_iterations * max(0.5, min(1.0, combined_factor)))
+            state.pipeline_config["optimize"]["iterations"] = scaled_iterations
+
+        logger.info(f"Configured pipeline for level '{state.resource_level}' with detail steps: {state.pipeline_config.get('detail',{}).get('num_inference_steps','N/A')}")
+
+    def _get_resource_level(self, resources: Dict[str, float]) -> str:
+        """Determine resource level string, considering swap usage."""
+        level = "minimal"  # Start with lowest
+        for lvl in ["high", "medium", "low"]:
+             thresholds = RESOURCE_THRESHOLDS[lvl]
+             if (resources.get("cpu", 0) >= thresholds["cpu"] and
+                 resources.get("memory", 0) >= thresholds["memory"]):
+                 level = lvl
+                 break # Found highest possible level based on CPU/Mem
+
+        # Downgrade based on swap usage
+        swap_percent = resources.get("swap", 0)
+        original_level = level
+        if swap_percent > 75 and level != "minimal":
+            level = "minimal"
+        elif swap_percent > 50 and level == "high":
+            level = "medium"
+        elif swap_percent > 30 and level in ["high", "medium"]:
+             level = "low"
+
+        if level != original_level:
+            logger.warning(f"Swap usage ({swap_percent:.1f}%) caused resource level downgrade from '{original_level}' to '{level}'.")
+
+        return level
+
     async def generate_svg_from_prompt(self, prompt: str, style: Optional[str] = None) -> Dict[str, Any]:
-        """Generate an SVG from a text prompt using the Chat2SVG pipeline.
+        """Generate SVG using optimized pipeline with circuit breaker protection."""
+        if not self.is_available():
+            return await self._generate_fallback(prompt, "Service Unavailable")
 
-        Args:
-            prompt: Text description to generate SVG from
-            style: Optional style guidance (e.g., "cartoon", "minimalist")
+        # Circuit Breaker Check
+        if not await self._allow_request():
+            return await self._generate_fallback(prompt, "Circuit Breaker Open")
 
-        Returns:
-            Dict containing svg_content, base64_image and metadata
-        """
-        # Check cache first
-        cache_key = f"chat2svg_{prompt}_{style or 'default'}"
-        cached_result = get_from_cache(cache_key)
-        if cached_result:
-            logger.info(f"Cache hit for SVG generation: {prompt[:30]}...")
+        # Cache Check
+        cache_key = f"chat2svg_opt_{hashlib.md5(f'{prompt}_{style or 'default'}'.encode()).hexdigest()}"
+        if cached_result := await _to_thread(get_from_cache, cache_key):
             return cached_result
 
-        if not self.is_available():
-            logger.warning("Chat2SVG not available or disabled, using fallback SVG generation")
-            svg_content = self._fallback_svg(prompt)
-            base64_image = await self._svg_to_base64(svg_content) # Generate base64 even for fallback
-            return {
-                "svg_content": svg_content,
-                "base64_image": base64_image,
-                "metadata": {
-                    "prompt": prompt,
-                    "error": "Chat2SVG not available or disabled",
-                    "fallback": True
-                }
-            }
+        # Pipeline Execution
+        pipeline_start_time = time.monotonic()
+        state = PipelineState(prompt, style)
+        pipeline_temp_dir = None
 
         try:
-            # Stage 1: Template Generation
-            template_svg = await self._generate_template(prompt, style)
-            if not template_svg: # Check if fallback was returned due to error
-                 raise ValueError("Template generation failed")
+            # Initialize Pipeline
+            resources = await self._detect_available_resources()
+            self._configure_pipeline_params(state, resources)
+            state.stages_to_run = self._decide_stages_to_run(state)
+            pipeline_temp_dir = tempfile.mkdtemp(prefix=f"chat2svg_pipe_{state.target_name}_")
 
-            # Stage 2: Detail Enhancement (optional based on config - currently stubbed)
-            if self.use_detail_enhancement:
-                enhanced_svg = await self._enhance_details(template_svg, prompt)
-            else:
-                enhanced_svg = template_svg
+            # --- Stage Execution ---
+            if "template" in state.stages_to_run:
+                if not await self._execute_stage_1(state, pipeline_temp_dir):
+                    raise PipelineError("Stage 1 failed")
 
-            # Stage 3: SVG Optimization (optional based on config - currently simplified)
-            if self.use_optimization:
-                final_svg, base64_image = await self._optimize_svg(enhanced_svg)
-            else:
-                final_svg = enhanced_svg
-                base64_image = await self._svg_to_base64(final_svg) # Convert final SVG
+            if "detail" in state.stages_to_run:
+                if not await self._execute_stage_2(state, pipeline_temp_dir):
+                    raise PipelineError("Stage 2 failed")
 
-            if not final_svg:
-                 raise ValueError("SVG Optimization failed")
+            if "optimize" in state.stages_to_run:
+                if not await self._execute_stage_3(state, pipeline_temp_dir, state.enhanced_svg, state.target_png_bytes):
+                    raise PipelineError("Stage 3 failed")
 
-            result = {
-                "svg_content": final_svg,
-                "base64_image": base64_image,
+            # --- Success ---
+            if state.optimized_svg:
+                # Cache result
+                add_to_cache(cache_key, {
+                    "svg_content": state.optimized_svg,
+                    "base64_image": _encode_svg_to_png_base64(state.optimized_svg),
+                    "metadata": {
+                        "prompt": prompt,
+                        "style": style,
+                        "error": state.error,
+                        "error_detail": state.error_detail if state.error_detail else None,
+                        "fallback": state.fallback_used,
+                        "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat()
+                    }
+                }, self.cache_ttl)
+
+            return {
+                "svg_content": state.optimized_svg,
+                "base64_image": _encode_svg_to_png_base64(state.optimized_svg),
                 "metadata": {
                     "prompt": prompt,
                     "style": style,
-                    "pipeline_stages": "template" +
-                        ("-detail_stub" if self.use_detail_enhancement else "") +
-                        ("-optimization_simple" if self.use_optimization else ""),
-                    "fallback": False
+                    "error": state.error,
+                    "error_detail": state.error_detail if state.error_detail else None,
+                    "fallback": state.fallback_used,
+                    "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat()
                 }
             }
 
-            # Cache the result
-            add_to_cache(cache_key, result, ttl=self.cache_ttl)
+        except PipelineError as pe:
+            await self._record_failure()
+            return await self._generate_fallback(prompt, str(pe))
+        except Exception as e:
+            await self._record_failure()
+            return await self._generate_fallback(prompt, f"Unexpected error: {type(e).__name__}")
+        finally:
+            if pipeline_temp_dir:
+                await _to_thread(shutil.rmtree, pipeline_temp_dir, ignore_errors=True)
 
+    async def _execute_stage_1(self, state: PipelineState, pipeline_temp_dir: str) -> bool:
+        """Runs Stage 1: Template Generation script."""
+        stage_start_time = time.monotonic()
+
+        exec_result = await self._run_chat2svg_script(self.template_gen_script, [state.prompt, state.style], {
+            "template_svg": os.path.join(pipeline_temp_dir, "template.svg")
+        })
+
+        success = False
+        if exec_result["success"] and "template_svg" in exec_result["output_files"]:
+            state.template_svg = await _read_file_async(exec_result["output_files"]["template_svg"])
+            if state.template_svg:
+                success = True
+            else:
+                state.set_error("Stage 1 output file empty")
+        else:
+            state.set_error("Stage 1 failed", exec_result["stderr"])
+
+        state.update_stage_duration("template", time.monotonic() - stage_start_time)
+        return success
+
+    async def _execute_stage_2(self, state: PipelineState, pipeline_temp_dir: str) -> bool:
+        """Runs Stage 2: Detail Enhancement script."""
+        stage_start_time = time.monotonic()
+
+        exec_result = await self._run_chat2svg_script(self.detail_enhance_script, [state.prompt, state.style], {
+            "enhanced_svg": os.path.join(pipeline_temp_dir, "enhanced.svg"),
+            "target_png": os.path.join(pipeline_temp_dir, "target.png")
+        })
+
+        success = False
+        if exec_result["success"]:
+            if "enhanced_svg" in exec_result["output_files"]:
+                state.enhanced_svg = await _read_file_async(exec_result["output_files"]["enhanced_svg"])
+            if "target_png" in exec_result["output_files"]:
+                with open(exec_result["output_files"]["target_png"], "rb") as f:
+                    state.target_png_bytes = await _to_thread(f.read)
+
+            if state.enhanced_svg and state.target_png_bytes:
+                success = True
+            else:
+                state.set_error("Stage 2 missing essential outputs")
+        else:
+            state.set_error("Stage 2 failed", exec_result["stderr"])
+
+        state.update_stage_duration("detail", time.monotonic() - stage_start_time)
+        return success
+
+    async def _execute_stage_3(self, state: PipelineState, pipeline_temp_dir: str, svg_input: str, png_input_bytes: bytes) -> bool:
+        """Run Stage 3: SVG Optimization using VAE."""
+        stage_start_time = time.monotonic()
+
+        stage3_svg_folder = os.path.join(pipeline_temp_dir, f"s3_{state.target_name}")
+        os.makedirs(stage3_svg_folder, exist_ok=True)
+
+        # Write provided content to files
+        stage3_input_svg = os.path.join(stage3_svg_folder, f"{state.target_name}_with_new_path.svg")
+        stage3_target_png = os.path.join(stage3_svg_folder, f"{state.target_name}_target.png")
+
+        try:
+            with open(stage3_input_svg, "w", encoding='utf-8') as f:
+                await _to_thread(f.write, svg_input)
+            with open(stage3_target_png, "wb") as f:
+                await _to_thread(f.write, png_input_bytes)
+        except Exception as e:
+            state.set_error(f"Failed to write Stage 3 input files: {e}")
+            return False
+
+        exec_result = await self._run_chat2svg_script(self.optimization_script, [state.prompt, state.style], {
+            "input_svg": stage3_input_svg,
+            "target_png": stage3_target_png,
+            "optimized_svg": os.path.join(stage3_svg_folder, f"{state.target_name}_optimized.svg")
+        })
+
+        success = False
+        if exec_result["success"] and "optimized_svg" in exec_result["output_files"]:
+            state.optimized_svg = await _read_file_async(exec_result["output_files"]["optimized_svg"])
+            if state.optimized_svg:
+                success = True
+        else:
+            state.set_error("Stage 3 failed", exec_result["stderr"])
+
+        state.update_stage_duration("optimize", time.monotonic() - stage_start_time)
+        return success
+
+    async def _run_chat2svg_script(self, script_path: str, args: list, output_paths: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
+        """Helper to run a Chat2SVG script with improved logging."""
+        result = {"success": False, "stdout": "", "stderr": "", "returncode": -1}
+        if not os.path.exists(script_path):
+            logger.error(f"Script not found: {script_path}")
+            result["stderr"] = "Script not found."
             return result
 
-        except Exception as e:
-            logger.error(f"Error in Chat2SVG pipeline for prompt '{prompt[:30]}...': {str(e)}", exc_info=True)
-            # Fallback to simpler SVG generation on any pipeline error
-            svg_content = self._fallback_svg(prompt)
-            base64_image = await self._svg_to_base64(svg_content)
-            return {
-                "svg_content": svg_content,
-                "base64_image": base64_image,
-                "metadata": {
-                    "prompt": prompt,
-                    "error": str(e),
-                    "fallback": True
-                }
-            }
+        cmd = [sys.executable, script_path] + args
+        script_name = os.path.basename(script_path)
+        logger.info(f"Running {script_name} with args: {' '.join(args)}")
 
-    async def _generate_template(self, prompt: str, style: Optional[str] = None) -> Optional[str]:
-        """Run the first stage of Chat2SVG pipeline (external script) to generate a template SVG.
+        process = await asyncio.create_subprocess_exec(
+            *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
+            cwd=os.path.dirname(script_path)
+        )
 
-        Args:
-            prompt: Text description to generate SVG from
-            style: Optional style guidance
+        try:
+            stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=self.subprocess_timeout)
+            result["returncode"] = process.returncode
+        except asyncio.TimeoutError:
+            logger.error(f"Script '{script_name}' timed out after {self.subprocess_timeout}s.")
+            result["stderr"] = f"Timeout after {self.subprocess_timeout}s."
+            try: process.kill(); await process.wait()
+            except: pass
+            return result
 
-        Returns:
-            SVG template as a string, or None if generation fails.
-        """
-        logger.info(f"Generating SVG template for prompt: {prompt[:30]}...")
+        result["stdout"] = stdout.decode(errors='ignore').strip()
+        result["stderr"] = stderr.decode(errors='ignore').strip()
 
-        # Create a temporary directory to store the output
-        with tempfile.TemporaryDirectory() as temp_dir:
-            output_file = os.path.join(temp_dir, "output.svg")
+        # Log stdout only on debug and only if not too long
+        if result["stdout"]:
+            stdout_preview = result["stdout"][:500] + ("..." if len(result["stdout"]) > 500 else "")
+            logger.debug(f"{script_name} stdout:\n{stdout_preview}")
+        
+        # Log stderr as warning only if script failed
+        if result["stderr"] and result["returncode"] != 0:
+            stderr_preview = result["stderr"][:500] + ("..." if len(result["stderr"]) > 500 else "")
+            logger.warning(f"{script_name} stderr:\n{stderr_preview}")
 
-            try:
-                # Construct the command arguments
-                if self.executable_mode:
-                    # Use the executable interface
-                    cmd = [
-                        self.template_gen_script,
-                        "--prompt", prompt,
-                        "--output", output_file,
-                    ]
-                    if style:
-                        cmd.extend(["--style", style])
+        if result["returncode"] != 0:
+            return result
+
+        result["success"] = True
+        if output_paths:
+            result["output_files"] = {}
+            for key, path in output_paths.items():
+                if os.path.exists(path):
+                    result["output_files"][key] = path
                 else:
-                    # Use the Python module interface
-                    cmd = [
-                        sys.executable,
-                        self.template_gen_script,
-                        "--target", prompt,
-                        "--output", output_file,
-                    ]
-                    # if style:
-                    #     cmd.extend(["--style", style])
+                    logger.error(f"Missing output '{key}': {path}")
+                    result["success"] = False
+                    result["stderr"] += f"\nMissing output: {key}"
 
-                logger.debug(f"Running Chat2SVG command: {' '.join(cmd)}")
+        return result
 
-                # Run the command asynchronously via a subprocess
-                process = await asyncio.create_subprocess_exec(
-                    *cmd,
-                    stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.PIPE
-                )
+    async def _generate_fallback(self, prompt: str, error: Optional[str] = None) -> Dict[str, Any]:
+        """Generate fallback SVG with standardized result structure."""
+        logger.warning(f"Generating fallback SVG for prompt: {prompt[:30]}...")
+        timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        
+        escaped_prompt = re.sub(r'[<>&]', '', prompt)[:60]
+        escaped_error = re.sub(r'[<>&]', '', error or "Chat2SVG failed or unavailable.")[:100]
+        
+        svg_content = f"""<svg viewBox="0 0 300 100" xmlns="http://www.w3.org/2000/svg">
+<rect width="100%" height="100%" fill="#f8f8f8" stroke="#e0e0e0" stroke-width="1"/>
+<text x="10" y="25" font-family="sans-serif" font-size="14" fill="#d9534f" font-weight="bold">Fallback SVG</text>
+<text x="10" y="45" font-family="sans-serif" font-size="10" fill="#333">Prompt: {escaped_prompt}{'...' if len(prompt) > 60 else ''}</text>
+<text x="10" y="60" font-family="sans-serif" font-size="10" fill="#777">Reason: {escaped_error}{'...' if len(error or '') > 100 else ''}</text>
+<text x="10" y="80" font-family="sans-serif" font-size="8" fill="#999">Generated: {timestamp}</text>
+</svg>"""
 
-                # Wait for the process to complete with a timeout
+        base64_image = await _to_thread(_encode_svg_to_png_base64, svg_content)
+        
+        return {
+            "svg_content": svg_content,
+            "base64_image": base64_image,
+            "metadata": {
+                "prompt": prompt,
+                "error": error,
+                "error_detail": error_detail if error_detail else None,
+                "fallback": True,
+                "timestamp": timestamp
+            }
+        }
+
+
+# --- Singleton Instance ---
+try:
+    chat2svg_generator = Chat2SVGGenerator()
+except Exception as e:
+    logger.critical(f"Failed to initialize Chat2SVGGenerator: {e}", exc_info=True)
+    class DummyGenerator:
+        def is_available(self): return False
+        async def generate_svg_from_prompt(self, prompt, style=None):
+             return {"svg_content": self._generate_fallback(prompt), "base64_image": "", "metadata": {"fallback": True, "error": "Generator Initialization Failed"}}
+        def _generate_fallback(self, prompt): return f'<svg viewBox="0 0 100 50"><text x="5" y="20" font-size="8">Chat2SVG Init Failed</text><text x="5" y="35" font-size="6">{prompt[:20]}...</text></svg>'
+    chat2svg_generator = DummyGenerator()
+
+
+class MultiRequestOptimizer:
+    """Optimizes concurrent SVG generation requests using max-flow principles"""
+    
+    def __init__(self):
+        self.active_requests = 0
+        self.request_queue = asyncio.Queue()
+        # Use Config-based max concurrent requests
+        max_concurrent = getattr(Config, 'CHAT2SVG_MAX_CONCURRENT_REQUESTS', 4)
+        self.resource_semaphore = asyncio.Semaphore(max_concurrent)
+        self.last_resource_check = 0
+        self.resource_check_interval = getattr(Config, 'CHAT2SVG_RESOURCE_CHECK_INTERVAL', 5)
+        self.resource_status = {
+            'cpu': 0.0,
+            'memory': 0.0,
+            'gpu': False,
+            'vram': 0.0
+        }
+
+    async def add_request(self, state: PipelineState) -> None:
+        """Add a request to the optimization queue"""
+        await self.request_queue.put(state)
+        await self._process_queue()
+
+    async def _update_resource_status(self) -> None:
+        """Update resource availability status"""
+        now = time.monotonic()
+        if now - self.last_resource_check < 5:  # Only check every 5 seconds
+            return
+
+        self.last_resource_check = now
+        cpu_pct = await _to_thread(psutil.cpu_percent)
+        mem_pct = await _to_thread(psutil.virtual_memory().percent)
+        
+        self.resource_status.update({
+            'cpu': cpu_pct / 100.0,
+            'memory': mem_pct / 100.0,
+            'gpu': torch.cuda.is_available() if hasattr(torch, 'cuda') else False,
+            'vram': torch.cuda.get_device_properties(0).total_memory if self.resource_status['gpu'] else 0.0
+        })
+
+    def _calculate_request_priority(self, state: PipelineState) -> float:
+        """Calculate priority score for a request based on resource requirements"""
+        score = 0.0
+        if 'optimize' in state.stages_to_run:
+            score += 0.4  # Higher weight for optimization stage
+        if state.resource_level == 'high':
+            score -= 0.3  # Penalize high resource requests when busy
+        return score
+
+    async def _process_queue(self) -> None:
+        """Process queued requests based on resource availability"""
+        if self.request_queue.empty():
+            return
+
+        await self._update_resource_status()
+        
+        # Stop processing if system is overloaded
+        if self.resource_status['cpu'] > 0.9 or self.resource_status['memory'] > 0.9:
+            logger.warning("System resources overloaded, delaying request processing")
+            return
+
+        # Calculate max requests to process based on resources
+        max_concurrent = min(
+            4,  # Base limit
+            8 if self.resource_status['cpu'] < 0.7 else 2,
+            6 if self.resource_status['memory'] < 0.8 else 2
+        )
+
+        while not self.request_queue.empty() and self.active_requests < max_concurrent:
+            async with self.resource_semaphore:
+                state = await self.request_queue.get()
+                self.active_requests += 1
                 try:
-                    stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=self.subprocess_timeout)
-                except asyncio.TimeoutError:
-                    logger.error(f"Chat2SVG template generation timed out after {self.subprocess_timeout}s for prompt: {prompt[:30]}...")
-                    process.kill()
-                    await process.wait()
-                    return None
+                    # Configure optimal parameters based on system load
+                    self._configure_for_load(state)
+                    # Process request
+                    await self._process_request(state)
+                finally:
+                    self.active_requests -= 1
+                    self.request_queue.task_done()
 
-                stdout_decoded = stdout.decode().strip()
-                stderr_decoded = stderr.decode().strip()
+    def _configure_for_load(self, state: PipelineState) -> None:
+        """Adjust pipeline parameters based on current system load"""
+        if self.resource_status['cpu'] > 0.8:
+            state.resource_level = 'low'
+        elif self.resource_status['cpu'] > 0.6:
+            state.resource_level = 'medium'
 
-                if stdout_decoded: logger.debug(f"Chat2SVG stdout: {stdout_decoded}")
-                if stderr_decoded: logger.warning(f"Chat2SVG stderr: {stderr_decoded}") # Log stderr as warning
+        # Adjust stage parameters based on load
+        if 'optimize' in state.pipeline_config:
+            config = state.pipeline_config['optimize']
+            if self.resource_status['cpu'] > 0.7:
+                config['iterations'] = min(config['iterations'], 500)
+            if self.resource_status['memory'] > 0.8:
+                config['opt_for_quality'] = False
 
-                if process.returncode != 0:
-                    logger.error(f"Chat2SVG template generation script failed with code {process.returncode} for prompt: {prompt[:30]}...")
-                    return None
-
-                # Read the generated SVG
-                if os.path.exists(output_file):
-                    # Use async file reading if files can be large
-                    # For typical SVGs, sync read is often fine within async context
-                    with open(output_file, "r", encoding='utf-8') as f:
-                        svg_content = f.read()
-                    logger.info(f"Successfully generated SVG template for prompt: {prompt[:30]}...")
-                    return svg_content
-                else:
-                    logger.error(f"Output file '{output_file}' not found after Chat2SVG script execution.")
-                    return None
-
-            except FileNotFoundError:
-                 logger.error(f"Chat2SVG script or Python executable not found. Script: {self.template_gen_script}, Python: {sys.executable}", exc_info=True)
-                 return None
-            except Exception as e:
-                logger.error(f"Unexpected error running Chat2SVG template generation: {str(e)}", exc_info=True)
-                return None
-
-    async def _detect_available_resources(self) -> str:
-        """Detect available system resources and determine appropriate detail level.
-        
-        Returns:
-            String representing resource level: 'high', 'medium', 'low', or 'minimal'
-        """
+    async def _process_request(self, state: PipelineState) -> None:
+        """Process a single request with optimized parameters"""
         try:
-            # Get available CPU and memory
-            cpu_percent = psutil.cpu_percent(interval=0.1)
-            memory = psutil.virtual_memory()
-            
-            # Calculate available resources (inverted percentages)
-            cpu_available = 100 - cpu_percent
-            memory_available = 100 - memory.percent
-            
-            logger.debug(f"Available resources - CPU: {cpu_available}%, Memory: {memory_available}%")
-            
-            # Determine resource level based on thresholds
-            if (cpu_available >= RESOURCE_THRESHOLDS["high"]["cpu_percent_available"] and 
-                    memory_available >= RESOURCE_THRESHOLDS["high"]["memory_percent_available"]):
-                return "high"
-            elif (cpu_available >= RESOURCE_THRESHOLDS["medium"]["cpu_percent_available"] and 
-                    memory_available >= RESOURCE_THRESHOLDS["medium"]["memory_percent_available"]):
-                return "medium"
-            elif (cpu_available >= RESOURCE_THRESHOLDS["low"]["cpu_percent_available"] and 
-                    memory_available >= RESOURCE_THRESHOLDS["low"]["memory_percent_available"]):
-                return "low"
-            else:
-                return "minimal"
+            pipeline = SVGPipelineController(state.prompt, state.style)
+            await pipeline.initialize()
+            await pipeline.execute()
         except Exception as e:
-            logger.warning(f"Error detecting system resources: {str(e)}")
-            return "minimal"  # Most conservative option on error
-
-    async def _enhance_details(self, svg_content: str, prompt: str) -> str:
-        """Run the second stage of Chat2SVG pipeline to enhance SVG details with diffusion models.
-        
-        This implementation now scales detail enhancement based on available system resources.
-        
-        Args:
-            svg_content: SVG template content
-            prompt: Original prompt for context
-        
-        Returns:
-            Enhanced SVG content
-        """
-        logger.info(f"Enhancing SVG details for prompt: {prompt[:30]}...")
-        
-        # Determine resource level and corresponding detail level
-        resource_level = await self._detect_available_resources()
-        detail_level = RESOURCE_THRESHOLDS[resource_level]["detail_level"]
-        
-        logger.info(f"Using {detail_level} detail level based on available resources ({resource_level})")
-        
-        # This is a stub implementation that demonstrates the planned workflow
-        try:
-            # 1. Extract key objects/elements from the SVG
-            extracted_elements = self._extract_svg_elements(svg_content)
-            if not extracted_elements:
-                logger.info("No major elements found for enhancement")
-                return svg_content
-                
-            # 2. Create diffusion model prompts for detailed enhancements
-            detail_prompts = {}
-            
-            # Adjust number of elements to process based on resource level
-            max_elements = {
-                "high": len(extracted_elements),  # Process all elements
-                "medium": min(len(extracted_elements), 10),  # Process up to 10 elements
-                "low": min(len(extracted_elements), 5),      # Process up to 5 elements
-                "minimal": 0                                 # Skip enhancement
-            }
-            
-            # If minimal resources, skip enhancement entirely
-            if resource_level == "minimal":
-                logger.warning("Insufficient resources for detail enhancement, skipping")
-                timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                comment = f"\n<!-- SVG detail enhancement skipped due to limited resources at {timestamp} -->\n"
-                if "</svg>" in svg_content:
-                    return svg_content.replace("</svg>", f"{comment}</svg>")
-                return svg_content + comment
-            
-            # Select elements to enhance based on resource level
-            elements_to_enhance = list(extracted_elements.items())[:max_elements[resource_level]]
-            
-            # Create targeted prompts based on detail level
-            for element_id, element_type in elements_to_enhance:
-                if detail_level == "high":
-                    detail_prompts[element_id] = f"Highly detailed {element_type} for '{prompt}' with texture and depth"
-                elif detail_level == "medium":
-                    detail_prompts[element_id] = f"Moderately detailed {element_type} for '{prompt}'"
-                else:  # low
-                    detail_prompts[element_id] = f"Simple {element_type} for '{prompt}'"
-            
-            logger.info(f"Would enhance {len(detail_prompts)} elements using diffusion models at {detail_level} detail")
-            
-            # 3. In a real implementation, this would call the diffusion model API with appropriate parameters
-            # enhanced_elements = await self._run_diffusion_enhancement(detail_prompts, detail_level=detail_level)
-            
-            # 4. Mock the merging of enhanced elements
-            timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            comment = f"\n<!-- SVG processed through detail enhancement stage (stub) at {timestamp} -->\n"
-            comment += f"<!-- Resource level: {resource_level}, Detail level: {detail_level} -->\n"
-            comment += f"<!-- Would enhance {len(detail_prompts)}/{len(extracted_elements)} elements -->\n"
-            
-            if "</svg>" in svg_content:
-                enhanced_svg = svg_content.replace("</svg>", f"{comment}</svg>")
-            else:
-                enhanced_svg = svg_content + comment
-                
-            logger.info("Detail enhancement stage completed (stub implementation)")
-            return enhanced_svg
-            
-        except Exception as e:
-            logger.error(f"Error in detail enhancement (stub): {str(e)}", exc_info=True)
-            # Return original content on error
-            return svg_content
-
-    async def _extract_svg_elements(self, svg_content: str) -> Dict[str, Dict[str, Any]]:
-        """Extract major elements from SVG for potential enhancement.
-        
-        Analyzes the SVG structure to identify key elements that could be enhanced
-        with diffusion models in a full implementation.
-        
-        Args:
-            svg_content: The SVG content to analyze
-    
-        Returns:
-            Dictionary mapping element IDs to information about each element
-        """
-        if not svg_content:
-            return {}
-    
-        extracted_elements = {}
-    
-        try:
-            # Use regex to find path elements with IDs
-            path_pattern = r'<path\s+([^>]*id=["\']([^"\']+)["\'][^>]*)>'
-            path_matches = re.finditer(path_pattern, svg_content)
-        
-            for match in path_matches:
-                attrs = match.group(1)
-                element_id = match.group(2)
-            
-                # Extract any d attribute (path data)
-                d_match = re.search(r'd=["\']([^"\']+)["\']', attrs)
-                d_value = d_match.group(1) if d_match else ""
-            
-                # Extract fill color if present
-                fill_match = re.search(r'fill=["\']([^"\']+)["\']', attrs)
-                fill = fill_match.group(1) if fill_match else "none"
-            
-                # Try to guess what this path represents based on attributes
-                description = "unknown shape"
-                if "circle" in element_id.lower() or (d_value and d_value.startswith("M") and "A" in d_value):
-                    description = "circle"
-                elif "rect" in element_id.lower() or (d_value and d_value.count("L") == 3 and d_value.count("Z") == 1):
-                    description = "rectangle"
-                elif "line" in element_id.lower():
-                    description = "line"
-            
-                extracted_elements[element_id] = {
-                    "type": "path",
-                    "description": description,
-                    "fill": fill,
-                    "d": d_value[:20] + "..." if len(d_value) > 20 else d_value,
-                    "hash": self._hash_element(d_value, fill)  # Hash for caching
-                }
-            
-            # Extract text elements
-            text_pattern = r'<text\s+([^>]*id=["\']([^"\']+)["\'][^>]*)>(.*?)</text>'
-            text_matches = re.finditer(text_pattern, svg_content, re.DOTALL)
-        
-            for match in text_matches:
-                attrs = match.group(1)
-                element_id = match.group(2)
-                content = match.group(3).strip()
-            
-                # Extract style or font attributes if present
-                style_match = re.search(r'style=["\']([^"\']+)["\']', attrs)
-                style = style_match.group(1) if style_match else ""
-            
-                extracted_elements[element_id] = {
-                    "type": "text",
-                    "content": content[:30] + "..." if len(content) > 30 else content,
-                    "description": "text element",
-                    "style": style,
-                    "hash": self._hash_element(content, style)  # Hash for caching
-                }
-            
-            # Extract group elements with IDs
-            group_pattern = r'<g\s+([^>]*id=["\']([^"\']+)["\'][^>]*)>'
-            group_matches = re.finditer(group_pattern, svg_content)
-        
-            for match in group_matches:
-                attrs = match.group(1)
-                element_id = match.group(2)
-            
-                # Try to determine group purpose from ID
-                description = "group"
-                for purpose in ["background", "foreground", "body", "head", "tail", "eyes", "legs", "arms"]:
-                    if purpose in element_id.lower():
-                        description = purpose
-                        break
-            
-                extracted_elements[element_id] = {
-                    "type": "group",
-                    "description": description,
-                    "hash": self._hash_element(element_id, description)  # Hash for caching
-                }
-        
-            logger.info(f"Extracted {len(extracted_elements)} elements from SVG")
-            return extracted_elements
-        
-        except Exception as e:
-            logger.error(f"Error extracting SVG elements: {str(e)}", exc_info=True)
-            return {}
-
-    def _hash_element(self, *args) -> str:
-        """Generate a hash for an element to use as a cache key.
-        
-        Args:
-            *args: Element attributes to include in the hash
-        
-        Returns:
-            A hash string representing the element
-        """
-        # Concatenate all arguments as strings
-        content = "".join(str(arg) for arg in args)
-    
-        # Generate a hash
-        return hashlib.md5(content.encode()).hexdigest()
-        
-
-# Create a singleton instance for easy import and use
-chat2svg_generator = Chat2SVGGenerator()
+            logger.error(f"Error processing request: {e}")
+            state.set_error("Request processing failed", str(e))

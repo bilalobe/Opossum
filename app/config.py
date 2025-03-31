@@ -153,45 +153,30 @@ class BaseConfig:
     API_KEY_REQUIRED = os.getenv("API_KEY_REQUIRED", "False").lower() == "true"
     API_KEY = os.getenv("API_KEY", "")  # Should be set in production
 
-    # Chat2SVG Integration Config
+    # Chat2SVG Integration Settings
     CHAT2SVG_ENABLED = os.getenv("CHAT2SVG_ENABLED", "true").lower() == "true"
     CHAT2SVG_DETAIL_ENHANCEMENT = os.getenv("CHAT2SVG_DETAIL_ENHANCEMENT", "false").lower() == "true"
     CHAT2SVG_PATH = os.getenv(
         "CHAT2SVG_PATH", 
         os.path.join(os.path.expanduser("~"), ".local", "share", "chat2svg")
     )
-    if not os.path.exists(CHAT2SVG_PATH):
-        logger.warning(f"CHAT2SVG_PATH does not exist or is inaccessible: {CHAT2SVG_PATH}")
-        if BaseConfig.ENV != "production":
-            # Create directory structure only in non-production environments
-            try:
-                os.makedirs(CHAT2SVG_PATH, exist_ok=True)
-                logger.info(f"Created Chat2SVG directory at: {CHAT2SVG_PATH}")
-            except Exception as e:
-                logger.error(f"Failed to create Chat2SVG directory: {e}")
-                
+
     # Additional Chat2SVG Configuration
-    CHAT2SVG_CACHE_TTL = int(os.getenv("CHAT2SVG_CACHE_TTL", "3600"))  # 1 hour
+    CHAT2SVG_CACHE_TTL = int(os.getenv("CHAT2SVG_CACHE_TTL", "3600"))
     CHAT2SVG_CACHE_MAXSIZE = int(os.getenv("CHAT2SVG_CACHE_MAXSIZE", "50"))
     CHAT2SVG_OUTPUT_DIR = os.getenv("CHAT2SVG_OUTPUT_DIR", os.path.join(CHAT2SVG_PATH, 'output'))
     CHAT2SVG_TEMP_DIR = os.getenv("CHAT2SVG_TEMP_DIR", tempfile.gettempdir())
-    
-    # SVG Generation Settings
-    CHAT2SVG_DEFAULT_STYLE = os.getenv("CHAT2SVG_DEFAULT_STYLE", "modern")
-    CHAT2SVG_DEFAULT_THEME = os.getenv("CHAT2SVG_DEFAULT_THEME", "light")
-    CHAT2SVG_DEFAULT_COLOR_PALETTE = os.getenv("CHAT2SVG_DEFAULT_COLOR_PALETTE", "default")
-    CHAT2SVG_MAX_SVG_SIZE = int(os.getenv("CHAT2SVG_MAX_SVG_SIZE", "1024"))  # Maximum dimension in pixels
-    
-    # Performance and Resource Settings
-    CHAT2SVG_MAX_PROMPT_LENGTH = int(os.getenv("CHAT2SVG_MAX_PROMPT_LENGTH", "500"))
-    CHAT2SVG_TIMEOUT = int(os.getenv("CHAT2SVG_TIMEOUT", "60"))  # Timeout in seconds
-    CHAT2SVG_RESOURCE_MODE = os.getenv("CHAT2SVG_RESOURCE_MODE", "adaptive")  # "adaptive", "high", "medium", "low", "minimal"
-    
-    # Resource thresholds for adaptive mode
+
+    # Multi-Request Optimization Settings
+    CHAT2SVG_MAX_CONCURRENT_REQUESTS = int(os.getenv("CHAT2SVG_MAX_CONCURRENT_REQUESTS", "4"))
+    CHAT2SVG_RESOURCE_CHECK_INTERVAL = int(os.getenv("CHAT2SVG_RESOURCE_CHECK_INTERVAL", "5"))
+    CHAT2SVG_REQUEST_TIMEOUT = int(os.getenv("CHAT2SVG_REQUEST_TIMEOUT", "300"))
+
+    # Resource Thresholds for Adaptive Mode
     CHAT2SVG_RESOURCE_THRESHOLDS = {
         "high": {
-            "cpu_percent_available": int(os.getenv("CHAT2SVG_HIGH_CPU_THRESHOLD", "50")),  # At least 50% CPU available
-            "memory_percent_available": int(os.getenv("CHAT2SVG_HIGH_MEMORY_THRESHOLD", "40")),  # At least 40% memory available
+            "cpu_percent_available": int(os.getenv("CHAT2SVG_HIGH_CPU_THRESHOLD", "50")),
+            "memory_percent_available": int(os.getenv("CHAT2SVG_HIGH_MEMORY_THRESHOLD", "40")),
             "detail_level": "high",
         },
         "medium": {
@@ -211,9 +196,11 @@ class BaseConfig:
         }
     }
     
-    # Advanced SVG Optimization Settings
-    CHAT2SVG_OPTIMIZATION_LEVEL = int(os.getenv("CHAT2SVG_OPTIMIZATION_LEVEL", "2"))  # 1-3, higher is more intensive
-    CHAT2SVG_PATH_SIMPLIFICATION = float(os.getenv("CHAT2SVG_PATH_SIMPLIFICATION", "0.2"))  # 0.0-1.0
+    # Advanced SVG Generation Settings
+    CHAT2SVG_MAX_SVG_SIZE = int(os.getenv("CHAT2SVG_MAX_SVG_SIZE", "1024"))
+    CHAT2SVG_MAX_PROMPT_LENGTH = int(os.getenv("CHAT2SVG_MAX_PROMPT_LENGTH", "500"))
+    CHAT2SVG_OPTIMIZATION_LEVEL = int(os.getenv("CHAT2SVG_OPTIMIZATION_LEVEL", "2"))
+    CHAT2SVG_PATH_SIMPLIFICATION = float(os.getenv("CHAT2SVG_PATH_SIMPLIFICATION", "0.2"))
     CHAT2SVG_ENABLE_ANIMATIONS = os.getenv("CHAT2SVG_ENABLE_ANIMATIONS", "false").lower() == "true"
 
 
