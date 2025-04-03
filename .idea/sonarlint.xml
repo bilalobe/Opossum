@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="SonarLintProjectSettings">
+    <option name="bindingEnabled" value="true" />
     <option name="moduleMapping">
       <map>
         <entry key="Opossum" value="PythonProject" />
       </map>
     </option>
+    <option name="projectKey" value="bilalobe_Opossum" />
+    <option name="serverId" value="opossum-search" />
   </component>
 </project>
