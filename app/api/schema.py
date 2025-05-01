@@ -41,11 +41,9 @@ async def resolve_generate_svg(info, input):
     # Check authorization if needed
     # user = info.context.get("user")
 
-    from app.models.chat2svg import Chat2SVGGenerator
-    generator = Chat2SVGGenerator()
-
     try:
-        result = await generator.generate_svg_from_prompt(input.prompt, style=input.style)
+        from app.models.chat2svg import generate_svg_request
+        result = await generate_svg_request(input.prompt, style=input.style)
         return SVGGenerationResult(
             svg_content=result["svg_content"],
             base64_image=result["base64_image"],

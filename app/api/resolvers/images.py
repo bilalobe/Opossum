@@ -75,11 +75,6 @@ async def resolve_process_image(root, info, image_data, effects=None):
         processor = ImageProcessor()
         result = processor.process_image(
             image_bytes,
-            brightness=effects.get("brightness", 0),
-            contrast=effects.get("contrast", 0),
-            saturation=effects.get("saturation", 0),
-            blur=effects.get("blur", 0),
-            sharpen=effects.get("sharpen", 0)
         )
 
         if not result:
