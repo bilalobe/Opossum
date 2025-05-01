@@ -114,6 +114,8 @@ Search. The following "testimonials" come from our unofficial mascots and qualit
 > Next week we're implementing the same sharded caching strategy for our winter food storage. I'll let you know how it
 > goes!
 
+---
+
 # Penny's Performance Optimization Tale
 
 *Penny, 1.5-year-old Virginia Opossum, Software Performance Engineer*
@@ -133,6 +135,167 @@ Search. The following "testimonials" come from our unofficial mascots and qualit
 > Five prehensile tails up! Would optimize again!
 > 
 > *\*satisfied chittering\* \*proud tail wiggle\**
+
+---
+
+# Marvin's Jitter Implementation Story
+
+*Marvin, 2.5-year-old Virginia Opossum, Distributed Systems Engineer*
+
+> *\*excited chittering\* \*rhythmic tail swishes\**
+>
+> Before I joined the Opossum Search resilience team, we had what I call the "startled opossum problem." Whenever our
+> Gemini service recovered after being down, every single request would immediately rush to it—like how all 12 of my
+> siblings would sprint toward a freshly tipped trash can, causing the whole thing to topple over again! *\*frustrated
+> hiss\**
+>
+> That's when I implemented what we marsupials call "the Shake and Scatter" technique, but you bipeds know as "request
+> jittering." It works exactly like how my family forages!
+>
+> You see, when I discover a fallen bird feeder, I don't tell everyone at once. I tell some siblings to check the garden
+> hose, others to investigate the compost heap, and only a few to join me at the feeder. That way, we don't overwhelm any
+> one food source. *\*smug clicking\**
+>
+> My jittering algorithm works the same way: when a service recovers, I programmed a 20% chance that requests would
+> still use the backup service even though the primary was available again. This created a natural "scattered approach" to
+> service recovery.
+>
+> ```python
+> # My brilliant code, inspired by opossum foraging patterns
+> if recovered_service and random.random() < 0.2:  # 20% chance
+>     # Keep using alternative service
+>     selected_service = backup_service
+>     log.info("Applying jitter: Using backup even though primary is available")
+> ```
+>
+> The results were immediate! Instead of services repeatedly failing from the "thundering herd" of requests, they
+> gracefully recovered—just like how we possums naturally distribute ourselves when foraging to avoid over-competition.
+>
+> For high-volume APIs, I even implemented what I call "adaptive jitter." Just like how I adjust my foraging strategy
+> based on how many siblings are already at the trash can, the system dynamically adjusts jitter percentages based on
+> current service health metrics!
+>
+> My proudest moment? During last month's major infrastructure update, our systems recovered 73% faster with jittering
+> than without it. Almost as impressive as the time I found three discarded hamburgers and didn't tell anyone until I'd
+> eaten my fill! *\*self-satisfied purr\**
+>
+> Remember fellow engineers: when systems fail, don't play dead—implement jitter instead!
+>
+> *\*professional tail curl\* \*technical sniffing\**
+
+
+---
+
+# Brenda's Circuit Breaker Saga
+
+*Brenda, 4.5-year-old Virginia Opossum, Senior Reliability Engineer*
+
+> *\*cautious sniffing\* \*slow, deliberate tail movements\**
+>
+> They call me Brenda the Breaker, not because I *break* things, mind you, but because I stop *others* from breaking
+> everything else! It's a subtle distinction, much like the difference between playing dead and actually *being* dead. *
+> \*meaningful pause\**
+>
+> Let me tell you about the Great Persimmon API Fiasco of last autumn. Our primary persimmon ripeness detector (a highly
+> sophisticated API involving trained squirrels) started returning errors. First one, then two... just like when a curious
+> raccoon approaches my den. *\*narrowed eyes\**
+>
+> Now, a naive system would just keep poking the failing API, right? Wrong! That's how you get a cascading failure—like
+> waking up a whole den of grumpy opossums at once. Instead, I implemented the circuit breaker pattern.
+>
+> ```python
+> # My elegant circuit breaker logic
+> failure_count += 1
+> if failure_count >= self.failure_threshold:
+>     self.state = CircuitState.OPEN
+>     self.last_failure_time = time.monotonic()
+>     log.warning(f"Circuit breaker for {self.name} tripped! Moving to OPEN state.")
+> ```
+>
+> After five consecutive failures (my personal threshold for 'dangerously annoying'), the circuit breaker *tripped*! *
+*Click!** Just like that, Opossum Search stopped sending requests to the Persimmon API. We entered the **OPEN** state.
+> It's like when I play dead—I stop interacting with the threat (the failing service) and give it space. Let it calm down.
+> Let it recover. *\*another dramatic pause\**
+>
+> After a minute (the `reset_timeout`), the breaker cautiously moved to the **HALF-OPEN** state. It sent *one* tentative
+> request, like me peeking one eye open to see if the raccoon has left. If that request succeeded? **Snap!** Back to *
+*CLOSED**, business as usual. If it failed? **Thump!** Back to **OPEN**, more playing dead time needed.
+>
+> This simple pattern saved us! Instead of the whole search system grinding to a halt because of some unreliable
+> squirrels, we gracefully isolated the problem, used fallback data (last known persimmon locations), and allowed the API
+> to recover without pressure.
+>
+> It's the opossum way: anticipate trouble, isolate the problem, give it space, and cautiously test before resuming
+> normal operations. Resilience isn't about never failing; it's about failing *smartly*.
+>
+> *\*nods sagely\* \*resumes cautious sniffing\**
+
+
+
+# Olivia's Observability Odyssey
+
+*Olivia, 2-year-old Virginia Opossum, Observability Engineer*
+
+> *\*attentive ear twitching\* \*careful sniffing\**
+> 
+> As a nocturnal creature with heightened senses, I've always believed I was born for observability engineering. My 50 teeth can detect the slightest irregularities in food texture, my sensitive whiskers can feel system vibrations others miss, and my keen nose can "smell" trouble brewing in production before alerts even trigger. *\*proud snuffle\**
+> 
+> When I joined the Opossum Search monitoring team, they were still using what I call the "raccoon approach" to observability—only noticing problems when something loud crashed in the garbage cans. *\*disapproving hiss\**
+> 
+> I implemented what we opossums call the "Three Senses Framework" for comprehensive monitoring: vision (metrics), hearing (logs), and smell (traces). Just as I use multiple senses to navigate through the darkness, our systems now perceive their environment through multiple complementary signals.
+> 
+> My proudest achievement was implementing our distributed trace sampling system. It works exactly like how we opossums forage! When I'm searching for ticks—my preferred protein source—I don't meticulously inspect every square inch of my territory. Instead, I use adaptive sampling based on where I've had success before.
+> 
+> ```python
+> def sample_trace(trace_context):
+>     # Smart sampling logic inspired by opossum foraging patterns
+>     if trace_context.has_error or trace_context.duration > HIGH_LATENCY_THRESHOLD:
+>         # Always capture problematic traces (just like I always eat ticks I find)
+>         return True
+>     elif trace_context.service in CRITICAL_SERVICES:
+>         # Sample 30% of important services (like prime foraging areas)
+>         return random.random() < 0.3
+>     else:
+>         # Sample only 5% of normal traces (like routine territory checks)
+>         return random.random() < 0.05
+> ```
+> 
+> When system anomalies occur, we no longer play dead and hope the problem resolves itself. Our new alerting system categorizes issues by severity, just like I categorize potential threats—from "harmless garden hose" to "aggressive neighborhood cat" to "PANIC! HUMAN WITH BROOM!"
+> 
+> The custom dashboards I designed maintain my lower body temperature preference of 95°F—I mean, they run with lower CPU utilization while still showing key vitals. And just like how I can rotate my rear feet 180° for climbing down trees head-first, our monitoring views can pivot instantly between service-level and system-wide perspectives!
+> 
+> After implementing our new observability stack, mean time to detection dropped by 76%, almost as impressive as my ability to process 4,000 ticks per season! *\*self-satisfied chitter\**
+> 
+> Remember fellow engineers: in observability as in opossum life, it's not just about playing dead when things go wrong—it's about having the senses to avoid danger in the first place!
+> *\*vigilant tail curl\* \*nocturnal clicking sounds\**
+
+---
+
+# Penelope's Prompt Polishing Prowess
+
+*Penelope "Penny" Promptwhisperer, 2-year-old Virginia Opossum, DSPy Optimization Specialist*
+
+> *\*soft clicking\* \*intense sniffing at the screen\**
+>
+> You know, crafting the *perfect* prompt is like teaching a joey how to ask nicely for a grub instead of just hissing vaguely in the direction of the log pile. Before I joined the Opossum Search team, some of our internal prompts were... well, let's just say they were more hiss than helpful. *\*gentle sigh\**
+>
+> My specialty? DSPy optimization! I took our basic Q&A pipeline, the one that uses the `OpossumFactTool`, and decided it needed some refinement. Manually tweaking prompts felt as inefficient as trying to carry 14 joeys without a pouch!
+>
+> So, I turned to `BootstrapFewShot`. I fed it examples from our `opossum_dataset_converted.json`—good questions paired with good answers—and let it work its magic. It was like showing the LM *exactly* how a well-behaved opossum answers questions: factually, concisely, and without unnecessary rambling about shiny objects.
+>
+> ```python
+> # My secret sauce - letting DSPy do the hard work!
+> teleprompter = dspy.BootstrapFewShot(metric=my_custom_opossum_metric, max_bootstrapped_demos=3)
+> optimized_qa_module = teleprompter.compile(student=unoptimized_qa, trainset=training_data)
+> ```
+>
+> The results? *Chef's kiss*... or, uh, *opossum's appreciative sniff*. The optimized prompts led to answers that were 30% more accurate according to my metrics (which mostly involve checking if the answer correctly states that opossums are immune to most snake venom). It was almost as satisfying as finding an unattended bowl of cat food!
+>
+> Now, our pipelines don't just answer questions; they answer them *elegantly*. It's the difference between a clumsy joey tumbling out of a tree and a graceful adult gliding down using its prehensile tail. Precision, efficiency, and a touch of marsupial magic!
+>
+> *\*satisfied tail curl\* \*resumes sniffing at the prompt output\**
+
+---
 
 ## Implementation Note
 
