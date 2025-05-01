@@ -77,8 +77,10 @@ def validate_request(model: type[BaseModel]):
                     status_code=400
                 )
             except Exception as e:
+                import logging
+                logging.error("An unexpected error occurred", exc_info=True)
                 return api_response(
-                    error=str(e),
+                    error="An internal server error occurred.",
                     status_code=500
                 )
 
