@@ -34,4 +34,4 @@ Inspired by classic "snake" games, Opossum Xenzia places the player (or an LLM-d
 
 Opossum Xenzia is envisioned as a living part of the Opossum Search project, evolving alongside our core AI capabilities and serving as a charming ambassador for both the technology and its marsupial inspiration.
 
-[Play Opossum Xenzia Now!](/opossum-xenzia/)
+[Play Opossum Xenzia Now!](Opossum/opossum-xenzia/)
