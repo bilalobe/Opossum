@@ -1,4 +1,4 @@
-flask~=3.1.0
+flask~=3.1.1
 httpx~=1.0.0b0
 cachetools>=5.3.2,<6.0
 sentence-transformers
@@ -13,7 +13,7 @@ psutil~=7.0.0
 google-generativeai
 
 # SVG Generation and Rendering
-cairosvg~=2.7.1
+cairosvg~=2.8.2
 pillow~=11.2.1
 
 # Background Animation
