@@ -57,3 +57,25 @@ experience outages.
 | Failed Recovery Attempts   | Count of unsuccessful recovery attempts  | > 3                | Escalate to manual intervention |
 | Failover Frequency         | Number of failovers in 24h period        | > 5                | Investigate root cause          |
 | Performance After Recovery | Response time compared to baseline       | > 150% of baseline | Flag for optimization           |
+
+### Circuit Breaker Pattern
+
+Opossum implements a robust circuit breaker pattern to prevent cascading failures when services become unresponsive. The
+centralized implementation provides:
+
+- **Failure threshold detection**: Configurable limits for consecutive failures
+- **Rate-based detection**: Optional percentage-based failure detection for high-volume services
+- **Automatic recovery**: Half-open state testing to detect when services recover
+- **Prometheus metrics**: Comprehensive monitoring of circuit state changes
+- **Named instances**: Service-specific circuit breakers with individual configurations
+
+Circuit breakers are managed centrally by the ErrorHandler and can be configured through environment variables:
+
+| Configuration Parameter             | Description                     | Default           |
+|-------------------------------------|---------------------------------|-------------------|
+| `CIRCUIT_BREAKER_FAILURE_THRESHOLD` | Default failure count threshold | 5                 |
+| `CIRCUIT_BREAKER_RESET_TIMEOUT`     | Default seconds before retry    | 60                |
+| `{SERVICE}_FAILURE_THRESHOLD`       | Service-specific threshold      | Default threshold |
+| `{SERVICE}_RESET_TIMEOUT`           | Service-specific timeout        | Default timeout   |
+
+When a circuit opens, requests will be routed to fallback mechanisms or return appropriate error responses to clients.
