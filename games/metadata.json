@@ -1,0 +1,6 @@
+{
+  "name": "Opossum's Digital Terrarium Adventure",
+  "description": "A dynamic text adventure game where you guide an AI-powered opossum through a grid-based world. The opossum's actions are determined by Gemini, and scenes are visualized with Imagen.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}
