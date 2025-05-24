@@ -1,0 +1,57 @@
+name: Deploy Docs and Game to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main # Or your primary development branch
+
+permissions:
+  contents: write # Needed to push to gh-pages
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Or your preferred Node.js version
+          cache: 'npm' # Or 'yarn'
+          cache-dependency-path: games/package-lock.json # Or games/yarn.lock
+
+      - name: Install MkDocs dependencies
+        run: pip install mkdocs mkdocs-material # Add any other MkDocs plugins you use
+
+      - name: Install Game dependencies
+        working-directory: ./games
+        run: npm install # Or yarn install
+
+      - name: Build Game
+        working-directory: ./games
+        env:
+          VITE_GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }} # Important: Use GitHub Secrets for API keys
+        run: npm run build # Or yarn build (Ensure vite.config.ts has base: '/opossum-xenzia/')
+
+      - name: Build MkDocs
+        run: mkdocs build # This creates the 'site' directory
+
+      - name: Copy Game into MkDocs site
+        run: |
+          mkdir -p site/opossum-xenzia # Create the target directory in the MkDocs output
+          cp -r games/dist/* site/opossum-xenzia/ # Copy all contents of game's dist
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site # Deploy the combined site directory
+          # Optional: if you are using a custom domain
+          # cname: your.custom.domain.com
