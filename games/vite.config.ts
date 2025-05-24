@@ -1,18 +1,13 @@
 import path from 'path';
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-export default defineConfig(({ mode }) => {
-    const env = loadEnv(mode, '.', '');
+export default defineConfig(({ }) => {
     return {
       plugins: [react()],
-      base: '/Opossum/opossum-xenzia/', // Or whatever subdirectory name you choose
+      base: '/Opossum/opossum-xenzia/',
       server: {
-        port: 3001, // Optional: if you want to run dev server on a different port
-      },
-      define: {
-        'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-        'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
+        port: 3001,
       },
       resolve: {
         alias: {
