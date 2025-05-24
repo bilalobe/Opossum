@@ -1,34 +1,29 @@
-# Error Codes
+# API Error Codes and Responses
 
-## Overview
+Opossum Search uses standard HTTP status codes to indicate the success or failure of an API request. In case of an error, the response body will contain a JSON object with a standardized structure.
 
-Opossum Search uses standardized error codes to provide consistent error handling across the API. This document lists
-all possible error codes, their meanings, and recommended resolution steps. For a list of available API routes,
-see [API Routes](routes.md). For detailed information about request and response formats,
-see [Request/Response Documentation](request-response.md). Information on API usage limits can be found
-in [Rate Limits](rate-limits.md). To learn about real-time notifications, refer to [Webhooks](webhooks.md). For system
-status and component health, see [Health Endpoints](health-endpoints.md).
+## Standard Error Response Format
 
-## Error Response Format
-
-All error responses follow this structure:
+When an error occurs (HTTP status code 4xx or 5xx), the response body follows this structure:
 
 ```json
 {
   "success": false,
   "error": {
-    "code": "error_code_string",
-    "message": "Human-readable error message",
+    "code": "error_category_code",
+    "message": "A human-readable description of the error.",
     "details": [
       {
-        "field": "specific_field",
-        "message": "Field-specific error message"
+        "field": "optional_field_name",
+        "message": "Specific detail about the error, often related to validation."
       }
+      // ... more details if applicable
     ]
   },
   "meta": {
-    "request_id": "req_8f7h6g5j4k3l2j1k",
-    "processing_time": 45
+    "request_id": "unique-request-identifier",
+    "timestamp": "YYYY-MM-DDTHH:MM:SS.ffffffZ", // UTC timestamp
+    "processing_time": 0.123 // Optional: Time taken in seconds
   }
 }
 ```
