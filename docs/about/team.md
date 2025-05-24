@@ -43,6 +43,7 @@ Opossum Search also benefits from the broader open-source community and the foll
 - **Gemini API** - Providing advanced AI capabilities
 - **Ollama** - Enabling local model deployment
 - **Transformers** - Supporting our fallback model capabilities
+- **DSPy** - For our advanced data science capabilities
 
 ## Join the Team
 
