@@ -196,6 +196,8 @@ python -m app
 
 ## 4. Configuration Management
 
+Effective configuration is crucial for adapting Opossum Search to different environments (`development`, `staging`, `production`). Configuration is primarily managed through environment variables and Python configuration files (`config/*.py`).
+
 ### 4.1 Environment Variables
 
 | Variable                      | Purpose                                              | Example                      |
@@ -208,41 +210,52 @@ python -m app
 | `REDIS_PASSWORD`              | [Redis](https://redis.io/) password                  | `secure-password`            |
 | `OLLAMA_BASE_URL`             | [Ollama](https://ollama.ai/) server URL              | `http://ollama:11434`        |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | [OpenTelemetry](https://opentelemetry.io/) collector | `http://otel-collector:4318` |
+| `FLASK_APP`                   | Flask application entry point                        | `app.py`                     |
+| `FLASK_ENV`                   | Flask environment                                    | `production`                 |
+| `DATABASE_URL`                | Database connection URL                              | `postgres://user:password@host/db` |
+| `SECRET_KEY`                  | Secret key for Flask application                     | `your-secret-key`            |
+| `LOG_LEVEL`                   | Logging level                                        | `INFO`                       |
+| `OTEL_ENABLED`                | Enable OpenTelemetry                                 | `True`                       |
+| `OTEL_SERVICE_NAME`           | OpenTelemetry service name                           | `opossum-search`             |
 
 ### 4.2 Configuration Files
 
-```python
-# config/production.py
-"""Production environment configuration"""
+Environment-specific Python files (e.g., `config/development.py`, `config/production.py`) inherit from a base `Config` class and override settings.
 
-# API settings
-API_KEY_REQUIRED = True
-GRAPHQL_GRAPHIQL = False
-VOYAGER_ENABLED = False
+**Key Configuration Settings:**
 
-# Rate limits
-RATE_LIMITS = {
-    "default": ["100 per day", "10 per minute"],
-    "admin": ["1000 per day", "100 per minute"],
-}
+- **Logging:**
+    - `LOG_LEVEL`: Sets the logging level (e.g., 'DEBUG', 'INFO', 'WARNING').
+- **OpenTelemetry:**
+    - `OTEL_ENABLED`: Boolean to enable/disable OpenTelemetry integration.
+    - `OTEL_SERVICE_NAME`: Name reported to the OTLP collector.
+    - `OTEL_EXPORTER_OTLP_ENDPOINT`: URL of the OTLP collector.
+- **Circuit Breaker Settings:**
+    - `CIRCUIT_BREAKER_FAILURE_THRESHOLD`: Default failure count before opening (e.g., 5).
+    - `CIRCUIT_BREAKER_RESET_TIMEOUT`: Default seconds before attempting recovery (e.g., 60).
+    - `[SERVICE_NAME]_CIRCUIT_BREAKER_ENABLED`: Boolean to enable/disable breaker for 'gemini', 'ollama', 'transformers'. Defaults to `True` for external, `False` for local `transformers`.
+    - `[SERVICE_NAME]_FAILURE_THRESHOLD`: Service-specific failure threshold override.
+    - `[SERVICE_NAME]_RESET_TIMEOUT`: Service-specific reset timeout override.
+- **Retry Policy Settings:**
+    - `DEFAULT_MAX_RETRIES`: Default maximum retry attempts for services (e.g., 3).
+    - `DEFAULT_RETRY_DELAY`: Default base delay (seconds) between retries (e.g., 1.0).
+    - `[SERVICE_NAME]_MAX_RETRIES`: Service-specific max retries override (e.g., 'gemini', 'ollama'). Defaults to 0 for `transformers`.
+    - `[SERVICE_NAME]_RETRY_DELAY`: Service-specific base delay override.
+- **API Keys & Endpoints:**
+    - `GEMINI_API_KEY`, `OLLAMA_HEALTH_URL`, etc.
+- **Rate Limits:**
+    - `GEMINI_DAILY_LIMIT`, `GEMINI_RPM_LIMIT`, etc.
+- **Model Settings:**
+    - `MAX_TOKENS`, `TEMPERATURE`, `TOP_P`, `TOP_K`.
+    - `USE_QUANTIZED_MODELS`, `MODEL_PRECISION`, `QUANTIZED_MODEL_DIR`.
+- **Other:**
+    - `REQUEST_TIMEOUT`, `TRANSFORMERS_WORKERS`, `AVAILABILITY_CHECK_INTERVAL`.
 
-# Cache settings
-CACHE_TTL = 3600  # 1 hour
-MODEL_SELECTION_CACHE_TTL = 60  # 1 minute
-AVAILABILITY_CACHE_TTL = 30  # 30 seconds
-
-# Model configuration
-DEFAULT_MODEL = "transformers"
-PREWARM_MODELS = ["transformers"]
-ERROR_THRESHOLD = 5
-
-# Security settings
-CORS_ALLOWED_ORIGINS = ["https://app.yourdomain.com"]
-CORS_ALLOW_CREDENTIALS = True
-MAX_IMAGE_SIZE = 10 * 1024 * 1024  # 10MB
-```
+Refer to `app/config.py` for the full list and default values.
 
 ### 4.3 Secrets Management
+
+API keys and other sensitive credentials should **never** be hardcoded in configuration files. Use environment variables or a dedicated secrets management system (like HashiCorp Vault, AWS Secrets Manager, etc.) accessed during application startup. The `Config` class typically reads these from the environment.
 
 ```bash
 # Create Kubernetes secrets

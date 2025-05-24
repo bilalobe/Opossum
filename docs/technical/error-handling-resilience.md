@@ -1,20 +1,119 @@
-# 8. Fallback Mechanisms
+# Error Handling & Resilience
 
-## 8.1 Fallback Hierarchy
+The Opossum Search system employs a centralized error handling mechanism and resilience patterns to ensure graceful degradation and robust operation even when external services or internal components fail.
+
+## Centralized Error Handler (`app.utils.error_handler.ErrorHandler`)
+
+The `ErrorHandler` class provides a single point for capturing, classifying, logging, and responding to exceptions throughout the application.
+
+### Key Features:
+
+1.  **Global Exception Capture**: Integrates with Flask to handle uncaught exceptions.
+2.  **Error Classification**: Categorizes errors (e.g., `API_CONNECTION`, `RATE_LIMIT`, `VALIDATION`, `SYSTEM`) using the `ErrorCategory` enum for consistent handling.
+3.  **Standardized JSON Responses**: Formats errors into a consistent JSON structure using the `ErrorResponse` Pydantic model, including an error code, message, details, request ID, and timestamp.
+4.  **Contextual Logging**: Logs errors using the globally configured structured logger, including relevant context provided during the error handling call.
+5.  **Circuit Breaker Integration**: Interacts with `CircuitBreaker` instances for external services (`gemini`, `ollama`, `transformers`). Failures are recorded via `record_failure`, and successes via `record_success`. Circuit breakers can be configured per service, including enabling/disabling them.
+6.  **Retry Policy Integration**: Reads retry policies (max retries, base delay) configured per service (`gemini`, `ollama`, `transformers`). *Note: The actual retry logic is typically applied via decorators (like `retry_with_exponential_backoff`) before the error handler is invoked.*
+7.  **Fallback Mechanism**: Supports registering and invoking fallback functions for specific services if the primary operation fails.
+8.  **Prometheus Metrics**: Tracks error occurrences (`opossum_errors_total` counter) and handling duration (`opossum_error_duration_seconds` gauge) categorized by error type.
+
+### Workflow:
+
+1.  An exception occurs and is caught or bubbles up to the Flask app.
+2.  The `ErrorHandler.handle_error(error, context)` method is invoked.
+3.  The error is classified (`_classify_error`).
+4.  Error metrics are updated.
+5.  If the error context includes a service name, the corresponding circuit breaker's `record_failure` method is called.
+6.  The handler checks if a fallback function is registered for the service and attempts to execute it (`_get_fallback_response`).
+7.  If no fallback succeeds, a standardized JSON error response is formatted (`_format_error_response`) based on the error type and details.
+8.  The error is logged with appropriate severity and context (`_log_error`).
+9.  The formatted JSON response with the correct HTTP status code is returned.
+
+### Configuration:
+
+Error handling behavior, circuit breakers, and retry policies are configured via the Flask application config (see [Deployment & Operations Guide](./devops-guide.md#4-configuration-management)).
+
+## Circuit Breaker Pattern (`app.monitoring.circuit_breaker.CircuitBreaker`)
+
+Used to prevent repeated calls to failing external services.
+
+- **States**: CLOSED (normal), OPEN (failing, calls blocked), HALF_OPEN (testing recovery).
+- **Configuration**: Failure threshold, reset timeout (configurable per service).
+- **Integration**: The `ErrorHandler` records failures. Decorators or direct checks use the breaker's state (`is_open`, `should_use_fallback`) to decide whether to call the service. `record_success` resets the failure count or closes the breaker.
+
+## Retry Mechanism (`app.utils.retry.retry_with_exponential_backoff`)
+
+A decorator used to automatically retry failing operations (typically API calls) with increasing delays.
+
+- **Features**: Exponential backoff, jitter, configurable max retries, specific exception handling.
+- **Configuration**: Max retries, base delay (configurable per service).
+- **Integration**: Applied directly to functions making potentially failing calls. Retries happen *before* the error handler is invoked for a final failure.
+
+## Fallback Strategies
+
+When a primary service fails (and retries are exhausted, or the circuit breaker is open), the system attempts to use fallback mechanisms:
+
+1.  **Registered Fallbacks**: The `ErrorHandler` can invoke specific Python functions registered per service.
+2.  **Model Selection Router**: The `ServiceRouter` inherently handles fallbacks by selecting the next best available model based on scores and availability if the primary choice fails during the routing process.
+3.  **Default Local Model**: The `transformers` backend often serves as the ultimate fallback if all external services are unavailable.
+
+## Chat2SVG Pipeline Resilience
+
+The Chat2SVG pipeline implements dedicated resilience patterns to ensure reliable SVG generation even under suboptimal conditions.
+
+### Circuit Breaker Pattern
+
+The pipeline uses a circuit breaker pattern to prevent cascading failures:
+
+```python
+# Initialize global components
+_circuit_breaker = CircuitBreaker()
+
+async def generate_svg_request(prompt: str, style: Optional[str] = None,
+                             priority: float = 0.5) -> Dict[str, Any]:
+    # Check circuit breaker
+    if _circuit_breaker.should_use_fallback():
+        logger.warning("Circuit breaker active, using fallback processing")
+        state.fallback_used = True
+        return await _process_with_fallback(state)
+        
+    # Normal processing...
+```
+
+### SVG Generation Fallback Strategy
+
+When the main pipeline encounters errors or when the circuit breaker is open:
+
+1. **Template-Only Mode**: Fallback uses simplified template generation only
+2. **Resource Monitoring**: Continues to monitor available resources
+3. **Degraded Output**: Returns a basic SVG with essential elements
+4. **Circuit Recovery**: Success/failure tracking to automatically reset the circuit
+
+### Integration with Global Error Handling
+
+The Chat2SVG module integrates with the application's centralized error handling system while maintaining domain-specific fallback mechanisms:
+
+- Re-exports the central `CircuitBreaker` component
+- Records success/failure metrics to the central monitoring system
+- Provides detailed error context for centralized logging
+
+# Fallback Mechanisms
+
+## Fallback Hierarchy
 
 | Priority      | Service      | Type          | Capabilities                               | Limitations                                    |
 |---------------|--------------|---------------|--------------------------------------------|------------------------------------------------|
 | 1 (Primary)   | Gemini API   | External API  | Full model capabilities, high intelligence | Rate limited, requires internet                |
 | 2 (Secondary) | Ollama       | Local service | Good capabilities, custom models           | Requires GPU for performance, local deployment |
 | 3 (Tertiary)  | Transformers | Local library | Basic capabilities, offline operation      | Higher latency, limited model size             |
-| 4 (Emergency) | Client-side  | JavaScript    | Basic scripted responses                   | Very limited capabilities, no real AI          |
+| 4 (SVG)       | Chat2SVG     | Pipeline      | SVG generation with optimization           | Resource-intensive for enhanced details        |
+| 5 (Emergency) | Client-side  | JavaScript    | Basic scripted responses                   | Very limited capabilities, no real AI          |
 
-## 8.2 Hybrid Model Implementation
+## Hybrid Model Implementation
 
-The system implements an intelligent hybrid model backend that dynamically selects and combines different model
-capabilities based on availability and requirements:
+The system implements an intelligent hybrid model backend that dynamically selects and combines different model capabilities based on availability and requirements:
 
-### 8.2.1 Backend Selection Strategy
+### Backend Selection Strategy
 
 The hybrid model uses a weighted scoring system to select the most appropriate backend:
 
@@ -26,7 +125,7 @@ The hybrid model uses a weighted scoring system to select the most appropriate b
 | Latency         | 0.1    | Response time importance                     |
 | Resource Usage  | 0.1    | System resource consumption consideration    |
 
-### 8.2.2 Service Capabilities
+### Service Capabilities
 
 Each service is scored based on its capabilities:
 
@@ -54,7 +153,7 @@ Each service is scored based on its capabilities:
 - Latency: 0.4
 - Resource Usage: 0.8
 
-### 8.2.3 Implementation Features
+### Implementation Features
 
 The hybrid model implementation includes:
 
@@ -76,7 +175,7 @@ The hybrid model implementation includes:
     - Automatic fallback to Transformers as last resort
     - Clear error logging and user communication
 
-### 8.2.4 Selection Process
+### Selection Process
 
 1. Check service availability status
 2. Quick check for image processing needs
@@ -86,7 +185,7 @@ The hybrid model implementation includes:
 5. Initialize backend if needed
 6. Monitor response and handle failures
 
-### 8.2.5 Recovery and Resilience
+### Recovery and Resilience
 
 The hybrid implementation provides several layers of resilience:
 
@@ -96,7 +195,7 @@ The hybrid implementation provides several layers of resilience:
 - Graceful degradation of capabilities
 - User-friendly error messages
 
-### 8.2.6 Configuration
+### Configuration
 
 Service configuration is managed through:
 
@@ -105,7 +204,7 @@ Service configuration is managed through:
 - ServiceAvailability check intervals
 - Backend-specific timeouts and retry settings
 
-## 8.3 Fallback Implementation
+## Fallback Implementation
 
 ```python
 class ServiceRouter:
@@ -130,7 +229,7 @@ class ServiceRouter:
             }
 ```
 
-## 8.4 Client-Side Fallback
+## Client-Side Fallback
 
 The frontend implements a JavaScript-based fallback that simulates basic responses when server services are unavailable:
 
@@ -159,7 +258,7 @@ function getBotResponse(userMessage) { // Fallback simulation function
 }
 ```
 
-## 8.5 Capability Degradation
+## Capability Degradation
 
 | Service      | Capability Level | Features Available                       | Features Limited                                 |
 |--------------|------------------|------------------------------------------|--------------------------------------------------|
@@ -168,7 +267,7 @@ function getBotResponse(userMessage) { // Fallback simulation function
 | Transformers | Medium           | Basic Q&A, text completion               | Complex reasoning, image processing              |
 | Client-side  | Minimal          | Scripted responses only                  | All AI capabilities                              |
 
-## 8.6 User Experience During Fallback
+## User Experience During Fallback
 
 | Fallback Scenario     | User Notification                   | Experience Impact                       |
 |-----------------------|-------------------------------------|-----------------------------------------|
@@ -177,19 +276,41 @@ function getBotResponse(userMessage) { // Fallback simulation function
 | Server → Client       | "Using simplified mode temporarily" | Severely limited capabilities           |
 | Temporary Outage      | Loading indicator, retry message    | Brief delay before fallback activates   |
 
-## 8.7 Recovery Mechanisms
+## Recovery Mechanisms
 
 | Recovery Type  | Detection                  | Implementation                                   | User Experience                         |
 |----------------|----------------------------|--------------------------------------------------|-----------------------------------------|
 | Automatic      | Periodic health checks     | Service switching when preferred service returns | Seamless transition to better service   |
 | Semi-Automatic | Service status monitoring  | Manual approval of service transition            | Brief service interruption              |
+| Adaptive       | Sensitivity analysis       | Dynamic resource allocation and pipeline tuning  | Quality adjustment based on resources   |
 | Manual         | Administrator intervention | Configuration update and service restart         | Temporary unavailability during restart |
 
-## 8.8 Fallback Testing
+## Resource Sensitivity Analysis
 
-| Test Type         | Frequency | Methodology                             | Success Criteria                            |
-|-------------------|-----------|-----------------------------------------|---------------------------------------------|
-| Controlled Outage | Weekly    | Simulate API unavailability             | Successful transition to fallback within 2s |
-| Rate Limit Test   | Monthly   | Generate high request volume            | Preemptive fallback before limit reached    |
-| Complete Failure  | Quarterly | Simulate all service unavailability     | Client-side fallback activated within 10s   |
-| Recovery Test     | Monthly   | Restore services after simulated outage | Return to primary service within 30s        |
+The Chat2SVG pipeline uses a `SensitivityAnalyzer` component to enhance system resilience through resource optimization:
+
+### Analyzer Capabilities
+
+- **Resource Bottleneck Detection**: Identifies which resources (CPU, GPU, memory) are limiting factors
+- **Parameter Impact Analysis**: Quantifies how configuration changes affect output quality
+- **Solution Space Exploration**: Evaluates alternative execution paths for optimal resource usage
+- **Recommendation Generation**: Produces actionable suggestions for pipeline optimization
+
+### Integration with Error Recovery
+
+The sensitivity analyzer's insights are used to recover from resource-related failures:
+
+```python
+# When processing a request
+sensitivity_data = await _analyzer.analyze_solution(solution, resources)
+
+# Data can inform future pipeline configurations to avoid similar failures
+```
+
+### Adaptive Resource Management
+
+Based on sensitivity analysis:
+
+1. **Dynamic Resource Allocation**: Shifts resources to bottlenecked components
+2. **Quality-Performance Tradeoffs**: Adjusts detail levels based on available resources
+3. **Predictive Failure Avoidance**: Detects potential issues before they cause failures
