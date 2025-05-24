@@ -3,13 +3,12 @@ site_description: Documentation for the Opossum Search system
 site_author: bebo
 
 # Repository
-# repo_name: opossum-search
-# repo_url: https://github.com/yourusername/opossum-search
+# repo_name: Opossum
+# repo_url: https://github.com/bilalobe/Opossum
 
-# Theme configuration
+# Theme configuration - upgraded to Material theme
 theme:
   name: readthedocs
-  # favicon: assets/images/favicon.png
   features:
     - navigation.tabs
     - navigation.sections
@@ -34,27 +33,34 @@ theme:
       toggle:
         icon: material/toggle-switch
         name: Switch to light mode
+  icon:
+    logo: material/magnify
+    favicon: material/magnify
 
-# Extensions
+# Extensions - enhanced with additional markdown extensions
 markdown_extensions:
   - tables
   - attr_list
   - md_in_html
   - admonition
+  - footnotes
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.superfences:
       custom_fences:
         - name: mermaid
           class: mermaid
-          format: !!python/name:mermaid2.fence_mermaid_custom
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.inlinehilite
   - pymdownx.tabbed:
       alternate_style: true
   - pymdownx.tasklist:
       custom_checkbox: true
-  - pymdownx.highlight
   - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.mark
   - toc:
       permalink: true
 
@@ -70,8 +76,10 @@ nav:
   - Core Components:
       - Architecture:
           - System Architecture: technical/system-architecture-overview.md
+          - Model Context Protocol (MCP): technical/mcp-architecture.md
           - GraphQL API: technical/graphql-api.md
           - Security Model: technical/security-model.md
+          - Prompt Management: technical/prompt-management.md
       - Model Integration:
           - Architecture: model-integration/architecture.md
           - Backend Selection: model-integration/backend-selection.md
@@ -79,6 +87,12 @@ nav:
           - Provider Integration: model-integration/providers.md
           - Configuration: model-integration/configuration.md
           - Hybrid Selection: technical/hybrid-model-selection.md
+          - Prompt Management: technical/prompt-management.md
+          # New DSPy integration pages
+          - DSPy Integration: model-integration/dspy-integration.md
+          - DSPy Technical Implementation: model-integration/dspy-technical.md
+          - DSPy Usage Examples: model-integration/dspy-examples.md
+          - DSPy Metrics & Performance: model-integration/dspy-metrics.md
       - Service Availability:
           - Context and Scope: service-availability/context-and-scope.md
           - Quality Requirements: service-availability/quality-requirements.md
@@ -108,6 +122,7 @@ nav:
       - Visualizations & Fun:
           - Service Visualizations: features/service-vizualizations.md
           - National Opossum Day: features/national-day.md
+          - Opossum Xenzia: features/opossum-xenzia.md
           - Easter Eggs: features/easter-eggs.md
           - Special Events: features/special-events.md
           - Background Stories: features/background-stories.md
@@ -120,6 +135,8 @@ nav:
           - SVG Markup: technical/svg-markup.md
           - Bot User Simulation: technical/bot-user-simulation.md
           - Optimization Strategies: infrastructure/optimization-strategies.md
+          - Pipeline Optimization: infrastructure/pipeline-optimization.md
+          - Constraint Mapping: infrastructure/constraint-mapping.md
       - API Documentation:
           - Routes: api/routes.md
           - Request/Response: api/request-response.md
@@ -129,15 +146,43 @@ nav:
           - Webhook Integration: api/webhooks.md
           - Health Endpoints: api/health-endpoints.md
           - Compliance: api/compliance.md
+      # New DSPy Tutorials section
+      - DSPy Tutorials:
+          - Getting Started with DSPy: tutorials/dspy/getting-started.md
+          - Optimizing Prompts: tutorials/dspy/optimizing-prompts.md
+          - Building Pipelines: tutorials/dspy/building-pipelines.md
+          - Advanced Reasoning: tutorials/dspy/advanced-reasoning.md
   
   - About:
       - Project History: about/history.md
+      - The Opossumial Way: about/opossumial-way.md
       - Team: about/team.md
-      - Roadmap: about/roadmap.md
+      - Roadmap & Vision: about/roadmap-vision.md
 
-# Plugins
+# Enhanced plugins
 plugins:
   - search
   - minify:
       minify_html: true
   - mermaid2
+  # New plugins inspired by DSPy
+  # Optional: Add if you want to include Jupyter notebooks
+  # - mkdocs-jupyter:
+  #     ignore_h1_titles: True
+  # Optional: Add if you want auto-generated API docs
+  - mkdocstrings:
+      handlers:
+          python:
+              options:
+                  docstring_style: google
+                  show_source: true
+
+# Extra CSS for customizations
+extra_css:
+  - stylesheets/extra.css
+
+# Social links
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/bilalobe/Opossum
