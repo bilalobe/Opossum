@@ -6,7 +6,7 @@ export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
     return {
       plugins: [react()],
-      base: '/opossum-xenzia/', // Or whatever subdirectory name you choose
+      base: '/Opossum/opossum-xenzia/', // Or whatever subdirectory name you choose
       server: {
         port: 3001, // Optional: if you want to run dev server on a different port
       },
