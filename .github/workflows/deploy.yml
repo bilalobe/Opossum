@@ -28,7 +28,7 @@ jobs:
           cache-dependency-path: games/package-lock.json # Or games/yarn.lock
 
       - name: Install MkDocs dependencies
-        run: pip install mkdocs mkdocs-material mkdocs-minify-plugin # Add any other MkDocs plugins you use
+        run: pip install mkdocs mkdocs-material mkdocs-minify-plugin mermaid2 # Add any other MkDocs plugins you use
 
       - name: Install Game dependencies
         working-directory: ./games
