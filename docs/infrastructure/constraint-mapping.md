@@ -92,6 +92,39 @@ graph TB
 
 *If using external LLM API; low if using local model
 
+## Sensitivity Analysis
+
+The pipeline uses advanced sensitivity analysis based on Google OR-Tools to optimize resource allocation and improve
+resilience:
+
+### Analysis Capabilities
+
+- **Variable Impact Analysis**: Quantifies the contribution of each pipeline stage to overall performance
+- **Resource Bottleneck Detection**: Identifies which resources (CPU, memory, GPU, VRAM) are limiting factors
+- **Objective Coefficient Ranging**: Determines how changes in stage importance affect solution quality
+- **What-If Scenario Modeling**: Tests hypothetical resource configurations without service disruption
+- **Automated Recommendations**: Suggests targeted improvements based on operational data
+
+### Implementation Details
+
+The `SensitivityAnalyzer` class provides:
+
+1. **Complete Analysis Workflow**:
+   ```python
+   analyzer = SensitivityAnalyzer()
+   model = analyzer.create_optimization_model(requests, resources)
+   status = model.Solve()
+   analysis = analyzer.analyze_model(model)
+   recommendations = analyzer.generate_recommendations(analysis)
+
+2. **Fallback Mechanisms**: Graceful degradation when
+   advanced analysis features aren't available in the
+   selected solver
+3. **Telemetry Integration**: Performance monitoring for
+   analysis operations
+
+This analysis enables data-driven decisions about pipeline
+configuration and hardware resource allocation.
 ## Key Observations & Optimization Priorities
 
 1. **Memory Streaming Priority**: The current file I/O between stages adds 20-25% overhead. Moving to memory streaming could yield the most immediate performance gains.
