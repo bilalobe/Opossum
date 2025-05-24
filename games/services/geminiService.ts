@@ -1,11 +1,19 @@
-
+/// <reference types="vite/client" />
 import { GoogleGenAI, GenerateContentResponse, Part } from "@google/genai";
-import { LLMAction, GroundingChunk } from '../types';
-import { AVAILABLE_ACTIONS } from '../constants'; 
+// ...existing code...
+import { AVAILABLE_ACTIONS } from '../constants';
 
-// API key MUST be obtained exclusively from process.env.API_KEY as per guidelines.
-// Assume process.env.API_KEY is pre-configured and valid.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// API key will be retrieved from Vite's environment variables (import.meta.env)
+// Ensure VITE_GEMINI_API_KEY is set in your build environment (e.g., GitHub Actions secrets)
+const apiKeyFromEnv = import.meta.env.VITE_GEMINI_API_KEY;
+
+if (!apiKeyFromEnv) {
+    console.error("CRITICAL: VITE_GEMINI_API_KEY is not defined in import.meta.env! API calls will fail.");
+    // Depending on desired behavior, you might throw an error here or let individual functions handle it.
+    // For now, we'll let the SDK potentially throw if it's initialized with undefined.
+}
+
+const ai = new GoogleGenAI({ apiKey: apiKeyFromEnv });
 
 export interface GetOpossumActionParams {
   personaPrompt: string;
@@ -23,7 +31,7 @@ function parseLLMResponse(responseText: string): LLMAction | null {
   let action = actionMatch?.[1]?.trim().toUpperCase() || "";
   const reason = reasonMatch?.[1]?.trim() || "No specific reason provided.";
 
-  if (!action || !reasonMatch) { 
+  if (!action || !reasonMatch) {
     console.warn(`LLM response missing ACTION or REASON: '${responseText}'. Falling back.`);
     action = AVAILABLE_ACTIONS[Math.floor(Math.random() * 4)]; // Random move
     return { action, reason: "Couldn't decide clearly, so chose randomly."};
@@ -46,7 +54,7 @@ function parseLLMResponse(responseText: string): LLMAction | null {
     } else if (action.includes(playDeadKeyword)) {
         salvagedAction = "PLAY_DEAD";
     }
-    
+
     if (AVAILABLE_ACTIONS.includes(salvagedAction)) {
         action = salvagedAction;
         console.warn(`Salvaged action to: ${action}`);
@@ -55,15 +63,14 @@ function parseLLMResponse(responseText: string): LLMAction | null {
         console.warn(`Falling back to random move action: ${action}`);
     }
   }
-  
+
   return { action, reason };
 }
 
 
 export async function getOpossumAction(params: GetOpossumActionParams): Promise<LLMAction | null> {
-  // Check if process.env.API_KEY is available (though guidelines assume it is)
-  if (!process.env.API_KEY) {
-    console.error("API_KEY environment variable not set. Gemini API calls will fail.");
+  if (!apiKeyFromEnv) {
+    console.error("VITE_GEMINI_API_KEY not available. Gemini API calls will fail for Opossum Action.");
     return { action: "HISS", reason: "Feeling confused due to missing API key configuration." };
   }
 
@@ -76,37 +83,36 @@ export async function getOpossumAction(params: GetOpossumActionParams): Promise<
     { text: "\n--- YOUR DECISION ---" },
     { text: "Based on the above, what is your next action and why? Remember the format:\nACTION: [Your Action]\nREASON: [Your Reason]" }
   ];
-  
+
   try {
     const response: GenerateContentResponse = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-preview-04-17', // Reverted to guideline-specified model for text tasks
-        contents: { parts: contentParts }, 
+        model: 'gemini-2.5-flash-preview-04-17',
+        contents: { parts: contentParts },
         config: {
-            temperature: 0.75, 
+            temperature: 0.75,
             topP: 0.95,
             topK: 40,
         }
     });
-    
+
     const text = response.text;
     console.log("LLM Raw Response for Opossum Action:", text);
     const parsed = parseLLMResponse(text);
     if (!parsed) {
         console.error("Failed to parse LLM response for Opossum Action:", text);
-        return { action: "HISS", reason: "I'm a bit confused right now." }; 
+        return { action: "HISS", reason: "I'm a bit confused right now." };
     }
     return parsed;
 
   } catch (error) {
     console.error("Error calling Gemini API for Opossum Action:", error);
-    // Provide a more generic error reason if the API key is confirmed to be loaded but an error still occurs
     return { action: "HISS", reason: `Something startled me! (API Error: ${error instanceof Error ? error.message : 'Unknown error'})` };
   }
 }
 
 export async function generateSceneImage(prompt: string): Promise<string | null> {
-  if (!process.env.API_KEY) {
-    console.error("API_KEY environment variable not set. Imagen API calls will fail.");
+  if (!apiKeyFromEnv) {
+    console.error("VITE_GEMINI_API_KEY not available. Imagen API calls will fail.");
     return null;
   }
 
@@ -114,8 +120,8 @@ export async function generateSceneImage(prompt: string): Promise<string | null>
     const response = await ai.models.generateImages({
         model: 'imagen-3.0-generate-002',
         prompt: `${prompt}, pixel art style, retro video game art, 16-bit, top-down view of the scene`,
-        config: { 
-            numberOfImages: 1, 
+        config: {
+            numberOfImages: 1,
             outputMimeType: 'image/jpeg',
         },
     });
@@ -133,13 +139,13 @@ export async function generateSceneImage(prompt: string): Promise<string | null>
 }
 
 export async function getGroundedResponse(query: string): Promise<{ text: string; sources: GroundingChunk[] }> {
-    if (!process.env.API_KEY) {
-      console.error("API_KEY environment variable not set. Grounded search API calls will fail.");
+    if (!apiKeyFromEnv) {
+      console.error("VITE_GEMINI_API_KEY not available. Grounded search API calls will fail.");
       return { text: "Search is unavailable due to missing API key.", sources: [] };
     }
     try {
         const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash-preview-04-17", // Ensure this also uses an allowed model from guidelines
+            model: "gemini-2.5-flash-preview-04-17",
             contents: query,
             config: {
                 tools: [{ googleSearch: {} }],
