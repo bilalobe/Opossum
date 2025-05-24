@@ -37,6 +37,7 @@ jobs:
       - name: Build Game
         working-directory: ./games
         env:
+          VITE_GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }} # Important: Use GitHub Secrets for API keys
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }} # Important: Use GitHub Secrets for API keys
         run: npm run build # Or yarn build (Ensure vite.config.ts has base: '/opossum-xenzia/')
 
